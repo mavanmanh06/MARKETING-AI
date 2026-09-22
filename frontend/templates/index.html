@@ -1,0 +1,1311 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hệ thống Quản lý Chiến dịch Marketing tích hợp AI | MarketingAI SaaS</title>
+    <meta name="description" content="Nền tảng quản lý chiến dịch marketing đa kênh, lịch đăng bài, theo dõi ROI và tích hợp trí tuệ nhân tạo (AI) sinh nội dung tự động.">
+    
+    <!-- Google Fonts: Inter & Outfit -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Outfit:wght@500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    
+    <!-- Chart.js for data visualization -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+    
+    <!-- Custom CSS Design System -->
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body class="role-manager">
+    <div id="app-container">
+        <!-- ================= AUTH SCREEN (LOGIN & REGISTER) ================= -->
+        <div id="auth-screen" class="auth-wrapper">
+            <div class="auth-card">
+                <div class="auth-header">
+                    <div class="logo-box">
+                        <div class="logo-icon"><i data-lucide="sparkles"></i></div>
+                        <span class="logo-text">Marketing<span class="gradient-text">AI</span></span>
+                    </div>
+                    <h2>Đăng nhập Hệ thống</h2>
+                    <p class="subtitle">Quản lý chiến dịch thông minh & Tối ưu ROI với Trí tuệ Nhân tạo</p>
+                </div>
+
+                <form id="login-form" onsubmit="handleLogin(event)">
+                    <div class="form-group">
+                        <label for="login-email"><i data-lucide="mail"></i> Email công việc</label>
+                        <input type="email" id="login-email" class="form-control" placeholder="name@company.com" required autocomplete="email">
+                    </div>
+                    <div class="form-group">
+                        <label for="login-password"><i data-lucide="lock"></i> Mật khẩu</label>
+                        <div class="password-input-wrapper">
+                            <input type="password" id="login-password" class="form-control" placeholder="Nhập mật khẩu" required autocomplete="current-password">
+                            <button type="button" class="toggle-password" onclick="togglePasswordVisibility('login-password')">
+                                <i data-lucide="eye"></i>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-primary btn-block btn-lg" id="btn-login-submit">
+                        <i data-lucide="log-in"></i> Đăng nhập vào Hệ thống
+                    </button>
+                </form>
+
+                <div class="auth-footer">
+                    <span>Chưa có tài khoản? <a href="#" onclick="showRegisterModal(event)">Đăng ký tài khoản mới</a></span>
+                </div>
+            </div>
+        </div>
+
+        <!-- ================= MAIN APP LAYOUT ================= -->
+        <div id="main-layout" class="app-layout" style="display: none;">
+            <!-- SIDEBAR -->
+            <aside class="app-sidebar">
+                <div class="sidebar-header">
+                    <div class="logo-box">
+                        <div class="logo-icon"><i data-lucide="sparkles"></i></div>
+                        <span class="logo-text">Marketing<span class="gradient-text">AI</span></span>
+                    </div>
+                    <div class="sidebar-role-indicator" id="sidebar-role-indicator">
+                        <span class="indicator-dot"></span>
+                        <span class="indicator-text" id="sidebar-role-text">CHẾ ĐỘ QUẢN LÝ</span>
+                    </div>
+                </div>
+
+                <!-- SIDEBAR NAV: DYNAMICALLY SWITCHED BASED ON USER ROLE -->
+                <nav class="sidebar-nav">
+                    
+                    <!-- 1. MANAGER SUITE NAVIGATION -->
+                    <div id="nav-manager-suite" class="role-nav-group">
+                        <div class="nav-section-title">QUẢN TRỊ & ĐIỀU HÀNH</div>
+                        <a href="#dashboard" class="nav-item active" onclick="switchView('dashboard', event)">
+                            <i data-lucide="layout-dashboard"></i>
+                            <span>Tổng quan Điều hành</span>
+                        </a>
+                        <a href="#campaigns" class="nav-item" onclick="switchView('campaigns', event)">
+                            <i data-lucide="target"></i>
+                            <span>Chiến dịch & Ngân sách</span>
+                        </a>
+                        <a href="#approval-center" class="nav-item nav-highlight-gold" onclick="switchView('approval-center', event)">
+                            <i data-lucide="shield-check"></i>
+                            <span>Trung tâm Phê duyệt</span>
+                            <span class="badge-pill badge-warning" id="badge-approval-count">0</span>
+                        </a>
+                        <a href="#team-management" class="nav-item" onclick="switchView('team-management', event)">
+                            <i data-lucide="users"></i>
+                            <span>Quản lý Đội ngũ</span>
+                        </a>
+                        <a href="#content" class="nav-item" onclick="switchView('content', event)">
+                            <i data-lucide="file-text"></i>
+                            <span>Nội dung & Lịch đăng</span>
+                        </a>
+
+                        <div class="nav-section-title">TÀI CHÍNH & AI</div>
+                        <a href="#metrics" class="nav-item" onclick="switchView('metrics', event)">
+                            <i data-lucide="bar-chart-3"></i>
+                            <span>Chỉ số & Báo cáo ROI</span>
+                        </a>
+                        <a href="#ai-assistant" class="nav-item nav-ai-highlight" onclick="switchView('ai-assistant', event)">
+                            <i data-lucide="bot"></i>
+                            <span>Trợ lý AI Chiến lược</span>
+                            <span class="badge-ai">AI Pro</span>
+                        </a>
+                        <a href="#settings" class="nav-item" onclick="switchView('settings', event)">
+                            <i data-lucide="settings"></i>
+                            <span>Cài đặt & Hệ thống</span>
+                        </a>
+                    </div>
+
+                    <!-- 2. MARKETER SUITE NAVIGATION -->
+                    <div id="nav-marketer-suite" class="role-nav-group" style="display: none;">
+                        <div class="nav-section-title">KHÔNG GIAN TÁC NGHIỆP</div>
+                        <a href="#marketer-workspace" class="nav-item active" onclick="switchView('marketer-workspace', event)">
+                            <i data-lucide="layout-grid"></i>
+                            <span>Bàn làm việc của tôi</span>
+                        </a>
+                        <a href="#content" class="nav-item" onclick="switchView('content', event)">
+                            <i data-lucide="feather"></i>
+                            <span>Studio Biên tập & Lịch</span>
+                        </a>
+                        <a href="#ai-assistant" class="nav-item nav-ai-highlight" onclick="switchView('ai-assistant', event)">
+                            <i data-lucide="sparkles"></i>
+                            <span>Trợ lý AI Marketing</span>
+                            <span class="badge-ai">AI Copilot</span>
+                        </a>
+                        <a href="#feedback-center" class="nav-item nav-highlight-cyan" onclick="switchView('feedback-center', event)">
+                            <i data-lucide="message-square-code"></i>
+                            <span>Góp ý & Cần sửa lại</span>
+                            <span class="badge-pill badge-danger" id="badge-feedback-count">0</span>
+                        </a>
+
+                        <div class="nav-section-title">CHIẾN DỊCH & HIỆU SUẤT</div>
+                        <a href="#campaigns" class="nav-item" onclick="switchView('campaigns', event)">
+                            <i data-lucide="compass"></i>
+                            <span>Danh sách Chiến dịch</span>
+                        </a>
+                        <a href="#my-performance" class="nav-item" onclick="switchView('my-performance', event)">
+                            <i data-lucide="trending-up"></i>
+                            <span>Hiệu quả Bài viết của tôi</span>
+                        </a>
+                        <a href="#settings" class="nav-item" onclick="switchView('settings', event)">
+                            <i data-lucide="user-check"></i>
+                            <span>Hồ sơ & Tài khoản</span>
+                        </a>
+                    </div>
+                </nav>
+
+                <div class="sidebar-user-footer">
+                    <div class="user-avatar-box">
+                        <img id="user-avatar" src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100" alt="Avatar" class="user-img">
+                        <div class="user-info">
+                            <span class="user-name" id="sidebar-user-name">Nguyễn Văn Quản Lý</span>
+                            <span class="user-role-badge manager-badge" id="sidebar-user-role">🛡️ QUẢN LÝ</span>
+                        </div>
+                    </div>
+                    <button class="btn-icon-logout" title="Đăng xuất" onclick="handleLogout()">
+                        <i data-lucide="log-out"></i>
+                    </button>
+                </div>
+            </aside>
+
+            <!-- MAIN CONTENT AREA -->
+            <main class="app-main">
+                <!-- TOP HEADER -->
+                <header class="app-header">
+                    <div class="header-left">
+                        <div class="role-pill-banner" id="header-role-banner">
+                            <i data-lucide="shield-check"></i> <span>Giao diện Quản trị Cấp cao (Manager Mode)</span>
+                        </div>
+                        <h1 class="page-title" id="current-page-title">Tổng quan Điều hành</h1>
+                        <span class="page-desc" id="current-page-desc">Theo dõi hiệu suất marketing đa kênh & đề xuất tối ưu từ AI</span>
+                    </div>
+
+                    <div class="header-right">
+                        <!-- Quick Role Switch Pill Button -->
+                        <div class="header-role-switch-box">
+                            <button class="btn-role-switch" onclick="toggleSwitchRole()" id="btn-header-role-switch" title="Chuyển đổi giao diện để trải nghiệm">
+                                <i data-lucide="repeat"></i>
+                                <span id="header-role-switch-label">Đang xem: <strong>Quản lý</strong> (Bấm chuyển <strong>Nhân viên</strong>)</span>
+                            </button>
+                        </div>
+
+                        <!-- Dynamic Header Actions based on Role -->
+                        <div class="header-actions" id="header-actions-container">
+                            <!-- Injected by JS -->
+                        </div>
+                    </div>
+                </header>
+
+                <!-- VIEW CONTAINER -->
+                <div class="view-content" id="view-container">
+                    
+                    <!-- ================= VIEW 1: EXECUTIVE MANAGER DASHBOARD ================= -->
+                    <section id="view-dashboard" class="page-view active">
+                        <!-- EXECUTIVE KPI CARDS -->
+                        <div class="kpi-grid">
+                            <div class="kpi-card kpi-executive">
+                                <div class="kpi-icon-wrapper kpi-blue"><i data-lucide="wallet"></i></div>
+                                <div class="kpi-info">
+                                    <span class="kpi-label">Ngân sách Toàn Cty / Đã chi</span>
+                                    <h3 class="kpi-value" id="kpi-budget-spend">0đ / 0đ</h3>
+                                    <span class="kpi-subtext" id="kpi-spend-rate">Tỷ lệ giải ngân: 0%</span>
+                                </div>
+                            </div>
+
+                            <div class="kpi-card kpi-executive">
+                                <div class="kpi-icon-wrapper kpi-green"><i data-lucide="trending-up"></i></div>
+                                <div class="kpi-info">
+                                    <span class="kpi-label">Doanh thu ghi nhận (ROI)</span>
+                                    <h3 class="kpi-value text-success" id="kpi-revenue-roi">0đ</h3>
+                                    <span class="kpi-subtext" id="kpi-roi-badge">ROI trung bình: +0%</span>
+                                </div>
+                            </div>
+
+                            <div class="kpi-card kpi-executive">
+                                <div class="kpi-icon-wrapper kpi-purple"><i data-lucide="target"></i></div>
+                                <div class="kpi-info">
+                                    <span class="kpi-label">Tổng Chuyển Đổi (CPA TB)</span>
+                                    <h3 class="kpi-value" id="kpi-conversions-cpa">0</h3>
+                                    <span class="kpi-subtext" id="kpi-cpa-text">Chi phí CPA: 0đ/lead</span>
+                                </div>
+                            </div>
+
+                            <div class="kpi-card kpi-executive kpi-alert-card">
+                                <div class="kpi-icon-wrapper kpi-amber"><i data-lucide="shield-alert"></i></div>
+                                <div class="kpi-info">
+                                    <span class="kpi-label">Bài viết Chờ Phê Duyệt</span>
+                                    <h3 class="kpi-value text-warning" id="kpi-pending-reviews-count">0</h3>
+                                    <a href="#approval-center" onclick="switchView('approval-center', event)" class="kpi-subtext text-warning link-underline">
+                                        ⚡ Xem hàng đợi duyệt bài &rarr;
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- MANAGER QUICK APPROVAL QUEUE (HUMAN-IN-THE-LOOP) -->
+                        <div class="card manager-approval-queue-card">
+                            <div class="card-header">
+                                <div class="card-title-box">
+                                    <i data-lucide="clock" class="text-warning"></i>
+                                    <h3>Hàng Đợi Phê Duyệt Nhanh (Executive Approval Queue)</h3>
+                                </div>
+                                <a href="#approval-center" onclick="switchView('approval-center', event)" class="link-more">
+                                    Mở Trung tâm Phê duyệt đầy đủ <i data-lucide="arrow-right"></i>
+                                </a>
+                            </div>
+                            <div id="dashboard-quick-approval-list" class="quick-approval-grid">
+                                <!-- Injected dynamically -->
+                            </div>
+                        </div>
+
+                        <!-- CHARTS SECTION -->
+                        <div class="dashboard-grid-2">
+                            <div class="card chart-card">
+                                <div class="card-header">
+                                    <div class="card-title-box">
+                                        <i data-lucide="line-chart"></i>
+                                        <h3>Hiệu quả Doanh thu & Chi phí theo thời gian</h3>
+                                    </div>
+                                    <span class="card-badge">Cập nhật thời gian thực</span>
+                                </div>
+                                <div class="chart-wrapper">
+                                    <canvas id="chart-timeline"></canvas>
+                                </div>
+                            </div>
+
+                            <div class="card chart-card">
+                                <div class="card-header">
+                                    <div class="card-title-box">
+                                        <i data-lucide="pie-chart"></i>
+                                        <h3>Phân bổ Ngân sách & Chuyển đổi theo Kênh</h3>
+                                    </div>
+                                </div>
+                                <div class="chart-wrapper">
+                                    <canvas id="chart-channel"></canvas>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- RECENT CAMPAIGNS & TEAM ACTIVITY -->
+                        <div class="dashboard-grid-2">
+                            <div class="card">
+                                <div class="card-header">
+                                    <div class="card-title-box">
+                                        <i data-lucide="target"></i>
+                                        <h3>Chiến dịch Trọng điểm Đang chạy</h3>
+                                    </div>
+                                    <a href="#campaigns" onclick="switchView('campaigns', event)" class="link-more">Xem tất cả <i data-lucide="arrow-right"></i></a>
+                                </div>
+                                <div class="table-responsive">
+                                    <table class="table" id="table-recent-campaigns">
+                                        <thead>
+                                            <tr>
+                                                <th>Tên chiến dịch</th>
+                                                <th>Ngân sách</th>
+                                                <th>Đã chi</th>
+                                                <th>ROI</th>
+                                                <th>Trạng thái</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="tbody-recent-campaigns">
+                                            <!-- Dynamically injected -->
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+
+                            <div class="card">
+                                <div class="card-header">
+                                    <div class="card-title-box">
+                                        <i data-lucide="git-pull-request"></i>
+                                        <h3>Trạng thái Quy trình Nội dung Marketing</h3>
+                                    </div>
+                                    <a href="#content" onclick="switchView('content', event)" class="link-more">Xem Kanban <i data-lucide="arrow-right"></i></a>
+                                </div>
+                                <div class="workflow-funnel" id="dashboard-workflow-funnel">
+                                    <!-- Injected -->
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+
+
+                    <!-- ================= VIEW 1B: MARKETER WORKSPACE DASHBOARD ================= -->
+                    <section id="view-marketer-workspace" class="page-view">
+                        <!-- MARKETER GREETING BANNER -->
+                        <div class="marketer-hero-card">
+                            <div class="marketer-hero-info">
+                                <div class="badge-creative-pill"><i data-lucide="sparkles"></i> KHÔNG GIAN SÁNG TẠO NỘI DUNG</div>
+                                <h2>Xin chào, <span id="marketer-hero-name">Trần Thị Marketer</span>! ✨</h2>
+                                <p>Tập trung sáng tạo các thông điệp viral, tương tác đa kênh và gửi bài duyệt lên Quản lý với trợ lý AI Copilot.</p>
+                            </div>
+                            <div class="marketer-hero-actions">
+                                <button class="btn btn-primary btn-lg" onclick="openCreatePostModal()">
+                                    <i data-lucide="plus-circle"></i> Soạn bài viết mới
+                                </button>
+                                <button class="btn btn-outline btn-lg" onclick="openAIGeneratorModal()">
+                                    <i data-lucide="bot"></i> AI Trợ lý Sinh nội dung
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- MARKETER KPI CARDS -->
+                        <div class="kpi-grid marketer-kpi-grid">
+                            <div class="kpi-card kpi-marketer">
+                                <div class="kpi-icon-wrapper kpi-cyan"><i data-lucide="file-text"></i></div>
+                                <div class="kpi-info">
+                                    <span class="kpi-label">Bài viết của tôi</span>
+                                    <h3 class="kpi-value" id="marketer-kpi-total-posts">0</h3>
+                                    <span class="kpi-subtext" id="marketer-kpi-published-sub">0 bài đã xuất bản</span>
+                                </div>
+                            </div>
+
+                            <div class="kpi-card kpi-marketer">
+                                <div class="kpi-icon-wrapper kpi-amber"><i data-lucide="clock"></i></div>
+                                <div class="kpi-info">
+                                    <span class="kpi-label">Đang chờ Sếp duyệt</span>
+                                    <h3 class="kpi-value text-warning" id="marketer-kpi-in-review">0</h3>
+                                    <span class="kpi-subtext">Đã gửi lên Ban quản lý</span>
+                                </div>
+                            </div>
+
+                            <div class="kpi-card kpi-marketer" id="marketer-kpi-revisions-card">
+                                <div class="kpi-icon-wrapper kpi-red"><i data-lucide="alert-circle"></i></div>
+                                <div class="kpi-info">
+                                    <span class="kpi-label">Cần Chỉnh sửa lại (Góp ý)</span>
+                                    <h3 class="kpi-value text-danger" id="marketer-kpi-rejected">0</h3>
+                                    <a href="#feedback-center" onclick="switchView('feedback-center', event)" class="kpi-subtext text-danger link-underline">
+                                        Xem góp ý từ Sếp &rarr;
+                                    </a>
+                                </div>
+                            </div>
+
+                            <div class="kpi-card kpi-marketer">
+                                <div class="kpi-icon-wrapper kpi-green"><i data-lucide="sparkles"></i></div>
+                                <div class="kpi-info">
+                                    <span class="kpi-label">Ứng dụng AI / Tỷ lệ duyệt</span>
+                                    <h3 class="kpi-value text-success" id="marketer-kpi-pass-rate">100%</h3>
+                                    <span class="kpi-subtext" id="marketer-kpi-ai-count">0 bài sinh bằng AI</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- FEEDBACK ALERT BANNER (IF ANY REVISIONS REQUIRED) -->
+                        <div id="marketer-feedback-alert-banner" class="feedback-alert-banner" style="display: none;">
+                            <div class="alert-icon-box"><i data-lucide="message-square-warning"></i></div>
+                            <div class="alert-content-box">
+                                <h4>Bạn có bài viết cần chỉnh sửa theo yêu cầu của Quản lý!</h4>
+                                <p id="marketer-feedback-alert-text">Quản lý đã để lại nhận xét góp ý. Hãy kiểm tra và gửi duyệt lại để kịp lịch xuất bản.</p>
+                            </div>
+                            <button class="btn btn-warning" onclick="switchView('feedback-center', event)">
+                                <i data-lucide="edit-3"></i> Xem & Sửa bài ngay
+                            </button>
+                        </div>
+
+                        <!-- FAST AI POST CREATOR WIDGET -->
+                        <div class="card ai-fast-creator-card">
+                            <div class="card-header">
+                                <div class="card-title-box">
+                                    <i data-lucide="sparkles" class="text-cyan"></i>
+                                    <h3>Khởi Tạo Nhanh Bài Viết Với AI Copilot</h3>
+                                </div>
+                                <span class="badge-tag">Gợi ý thông minh tức thì</span>
+                            </div>
+                            <div class="fast-creator-body">
+                                <div class="form-row">
+                                    <div class="form-group col-4">
+                                        <label>Chọn Kênh phát hành:</label>
+                                        <select id="fast-ai-channel" class="form-control">
+                                            <option value="Facebook">Facebook (Post + Hashtag)</option>
+                                            <option value="TikTok">TikTok (Kịch bản Video)</option>
+                                            <option value="Google Ads">Google Ads (Mẫu quảng cáo)</option>
+                                            <option value="Instagram">Instagram (Visual Caption)</option>
+                                            <option value="Email Marketing">Email Marketing</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-group col-6">
+                                        <label>Ý tưởng hoặc Chủ đề bạn muốn viết:</label>
+                                        <input type="text" id="fast-ai-topic" class="form-control" placeholder="VD: Khuyến mãi bùng nổ cuối tuần giảm giá 40% cho sinh viên...">
+                                    </div>
+                                    <div class="form-group col-2" style="display: flex; align-items: flex-end;">
+                                        <button class="btn btn-primary btn-block" onclick="handleFastAICreate()" id="btn-fast-ai-gen">
+                                            <i data-lucide="wand-2"></i> Sinh bài ngay
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- MARKETER RECENT DRAFTS & UPCOMING POSTS -->
+                        <div class="dashboard-grid-2">
+                            <div class="card">
+                                <div class="card-header">
+                                    <div class="card-title-box">
+                                        <i data-lucide="edit-3"></i>
+                                        <h3>Bản Nháp & Bài Viết Gần Đây Của Tôi</h3>
+                                    </div>
+                                    <a href="#content" onclick="switchView('content', event)" class="link-more">Mở Studio <i data-lucide="arrow-right"></i></a>
+                                </div>
+                                <div class="table-responsive">
+                                    <table class="table table-hover">
+                                        <thead>
+                                            <tr>
+                                                <th>Tiêu đề / Kênh</th>
+                                                <th>Chiến dịch</th>
+                                                <th>Trạng thái</th>
+                                                <th>Thao tác</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="tbody-marketer-recent-drafts">
+                                            <!-- Injected -->
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+
+                            <div class="card">
+                                <div class="card-header">
+                                    <div class="card-title-box">
+                                        <i data-lucide="calendar"></i>
+                                        <h3>Lịch Phát Hành Sắp Tới Của Tôi</h3>
+                                    </div>
+                                    <a href="#content" onclick="switchView('content', event); switchContentTab('calendar');" class="link-more">Lịch đầy đủ <i data-lucide="arrow-right"></i></a>
+                                </div>
+                                <div id="marketer-upcoming-events-list" class="upcoming-events-list">
+                                    <!-- Injected -->
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+
+
+                    <!-- ================= VIEW 2: APPROVAL CENTER (MANAGER ONLY) ================= -->
+                    <section id="view-approval-center" class="page-view">
+                        <div class="approval-center-header card">
+                            <div class="approval-header-info">
+                                <h2><i data-lucide="shield-check" class="text-warning"></i> Trung Tâm Phê Duyệt Nội Dung Marketing</h2>
+                                <p>Kiểm duyệt các bài viết do nhân viên khởi tạo trước khi xuất bản lên các kênh truyền thông (Quy trình Human-in-the-Loop).</p>
+                            </div>
+                            <div class="approval-stats-pills">
+                                <div class="stat-pill"><span id="approval-count-pending">0</span> bài chờ duyệt</div>
+                                <div class="stat-pill text-success"><span id="approval-count-approved">0</span> đã duyệt</div>
+                                <div class="stat-pill text-danger"><span id="approval-count-rejected">0</span> yêu cầu sửa</div>
+                            </div>
+                        </div>
+
+                        <!-- Filter for approvals -->
+                        <div class="filter-bar card">
+                            <div class="filter-inputs">
+                                <div class="select-box">
+                                    <label><i data-lucide="filter"></i> Trạng thái lọc:</label>
+                                    <select id="approval-filter-status" onchange="renderApprovalCenter()">
+                                        <option value="in_review">⚡ Chỉ bài chờ duyệt (In Review)</option>
+                                        <option value="all">Tất cả các bài</option>
+                                        <option value="approved">Đã phê duyệt</option>
+                                        <option value="rejected">Đã yêu cầu sửa lại</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="filter-actions">
+                                <button class="btn btn-outline" onclick="loadContent();"><i data-lucide="refresh-cw"></i> Làm mới danh sách</button>
+                            </div>
+                        </div>
+
+                        <!-- Approval Cards Grid -->
+                        <div id="approval-cards-container" class="approval-cards-grid">
+                            <!-- Injected dynamically -->
+                        </div>
+                    </section>
+
+
+                    <!-- ================= VIEW 3: TEAM MANAGEMENT (MANAGER ONLY) ================= -->
+                    <section id="view-team-management" class="page-view">
+                        <div class="card team-summary-card">
+                            <div class="card-header">
+                                <div class="card-title-box">
+                                    <i data-lucide="users"></i>
+                                    <h3>Đội Ngũ Nhân Sự & Hiệu Suất Marketing</h3>
+                                </div>
+                                <button class="btn btn-primary btn-sm" onclick="showRegisterModal(event)">
+                                    <i data-lucide="user-plus"></i> Thêm thành viên mới
+                                </button>
+                            </div>
+                            <div class="team-kpi-summary">
+                                <div class="team-stat-item">
+                                    <span class="team-stat-val" id="team-stat-total-members">2</span>
+                                    <span class="team-stat-lbl">Thành viên đội ngũ</span>
+                                </div>
+                                <div class="team-stat-item">
+                                    <span class="team-stat-val text-success" id="team-stat-total-posts">0</span>
+                                    <span class="team-stat-lbl">Tổng bài viết đã tạo</span>
+                                </div>
+                                <div class="team-stat-item">
+                                    <span class="team-stat-val text-primary" id="team-stat-avg-pass-rate">100%</span>
+                                    <span class="team-stat-lbl">Tỷ lệ duyệt đạt chuẩn</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="card">
+                            <div class="card-header">
+                                <h4>Danh sách Thành viên & Chỉ số KPI Hoạt động</h4>
+                            </div>
+                            <div class="table-responsive">
+                                <table class="table table-hover">
+                                    <thead>
+                                        <tr>
+                                            <th>Thành viên</th>
+                                            <th>Email</th>
+                                            <th>Vai trò hệ thống</th>
+                                            <th>Tổng bài tạo</th>
+                                            <th>Đã duyệt / Xuất bản</th>
+                                            <th>Ứng dụng AI</th>
+                                            <th>Tỷ lệ Đạt chuẩn</th>
+                                            <th>Trạng thái</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="tbody-team-members">
+                                        <!-- Injected -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </section>
+
+
+                    <!-- ================= VIEW 4: FEEDBACK & REVISIONS CENTER (MARKETER ONLY) ================= -->
+                    <section id="view-feedback-center" class="page-view">
+                        <div class="feedback-hero-banner card">
+                            <div class="feedback-banner-text">
+                                <h2><i data-lucide="message-square-code" class="text-danger"></i> Hộp Thư Góp Ý & Yêu Cầu Chỉnh Sửa</h2>
+                                <p>Danh sách các bài viết Quản lý đã xem xét và yêu cầu điều chỉnh lại nội dung hoặc thông số trước khi xuất bản.</p>
+                            </div>
+                            <span class="badge-pill badge-danger" id="feedback-center-badge-count">0 bài cần sửa</span>
+                        </div>
+
+                        <div id="feedback-cards-container" class="feedback-cards-grid">
+                            <!-- Injected -->
+                        </div>
+                    </section>
+
+
+                    <!-- ================= VIEW 5: MY PERFORMANCE (MARKETER ONLY) ================= -->
+                    <section id="view-my-performance" class="page-view">
+                        <div class="card">
+                            <div class="card-header">
+                                <div class="card-title-box">
+                                    <i data-lucide="trending-up"></i>
+                                    <h3>Bảng Theo Dõi Hiệu Quả Bài Viết Cá Nhân</h3>
+                                </div>
+                                <button class="btn btn-outline btn-sm" onclick="loadContent()">
+                                    <i data-lucide="refresh-cw"></i> Làm mới
+                                </button>
+                            </div>
+                            <div class="table-responsive">
+                                <table class="table table-hover">
+                                    <thead>
+                                        <tr>
+                                            <th>Tiêu đề</th>
+                                            <th>Chiến dịch</th>
+                                            <th>Kênh</th>
+                                            <th>Nguồn gốc</th>
+                                            <th>Lịch phát hành</th>
+                                            <th>Trạng thái duyệt</th>
+                                            <th>Người duyệt & Nhận xét</th>
+                                            <th>Thao tác</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="tbody-my-performance">
+                                        <!-- Injected -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </section>
+
+
+                    <!-- ================= VIEW 6: CAMPAIGNS ================= -->
+                    <section id="view-campaigns" class="page-view">
+                        <!-- FILTER BAR -->
+                        <div class="filter-bar card">
+                            <div class="filter-inputs">
+                                <div class="search-input-box">
+                                    <i data-lucide="search"></i>
+                                    <input type="text" id="campaign-search-input" placeholder="Tìm kiếm chiến dịch theo tên, mục tiêu..." oninput="handleCampaignFilter()">
+                                </div>
+
+                                <div class="select-box">
+                                    <label><i data-lucide="filter"></i> Trạng thái:</label>
+                                    <select id="campaign-status-filter" onchange="handleCampaignFilter()">
+                                        <option value="all">Tất cả trạng thái</option>
+                                        <option value="active">Đang chạy (Active)</option>
+                                        <option value="planning">Lập kế hoạch (Planning)</option>
+                                        <option value="paused">Tạm dừng (Paused)</option>
+                                        <option value="completed">Đã hoàn thành (Completed)</option>
+                                    </select>
+                                </div>
+
+                                <div class="select-box">
+                                    <label><i data-lucide="share-2"></i> Kênh:</label>
+                                    <select id="campaign-channel-filter" onchange="handleCampaignFilter()">
+                                        <option value="all">Tất cả các kênh</option>
+                                        <!-- Injected -->
+                                    </select>
+                                </div>
+                            </div>
+
+                            <button class="btn btn-primary manager-only" onclick="openCreateCampaignModal()" id="btn-campaign-create-action">
+                                <i data-lucide="plus-circle"></i> Thêm chiến dịch
+                            </button>
+                        </div>
+
+                        <!-- CAMPAIGN CARDS LIST -->
+                        <div class="campaign-grid" id="campaign-cards-grid">
+                            <!-- Injected dynamically -->
+                        </div>
+                    </section>
+
+
+                    <!-- ================= VIEW 7: CONTENT & CALENDAR ================= -->
+                    <section id="view-content" class="page-view">
+                        <!-- Content Sub Header -->
+                        <div class="sub-nav-bar">
+                            <div class="tab-group">
+                                <button class="tab-btn active" onclick="switchContentTab('list', event)"><i data-lucide="list"></i> Danh sách bài viết</button>
+                                <button class="tab-btn" onclick="switchContentTab('kanban', event)"><i data-lucide="columns"></i> Pipeline duyệt bài</button>
+                                <button class="tab-btn" onclick="switchContentTab('calendar', event)"><i data-lucide="calendar"></i> Lịch xuất bản</button>
+                            </div>
+
+                            <div class="content-actions">
+                                <button class="btn btn-outline" onclick="openAIGeneratorModal()">
+                                    <i data-lucide="sparkles"></i> AI Viết nội dung
+                                </button>
+                                <button class="btn btn-primary" onclick="openCreatePostModal()">
+                                    <i data-lucide="plus"></i> Tạo bài viết mới
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- TAB CONTENT 1: LIST VIEW -->
+                        <div id="content-tab-list" class="content-subview active">
+                            <div class="card">
+                                <div class="table-responsive">
+                                    <table class="table table-hover">
+                                        <thead>
+                                            <tr>
+                                                <th>Tiêu đề / Kênh</th>
+                                                <th>Chiến dịch</th>
+                                                <th>Tác giả</th>
+                                                <th>Lịch đăng</th>
+                                                <th>Nguồn</th>
+                                                <th>Trạng thái duyệt</th>
+                                                <th>Thao tác</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="tbody-content-list">
+                                            <!-- Injected -->
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- TAB CONTENT 2: KANBAN PIPELINE -->
+                        <div id="content-tab-kanban" class="content-subview">
+                            <div class="kanban-board" id="kanban-board-container">
+                                <!-- Columns: Draft -> In Review -> Approved -> Published -->
+                            </div>
+                        </div>
+
+                        <!-- TAB CONTENT 3: CALENDAR VIEW -->
+                        <div id="content-tab-calendar" class="content-subview">
+                            <div class="card calendar-card">
+                                <div class="calendar-header">
+                                    <h3 id="calendar-month-label">Lịch phát hành nội dung Marketing</h3>
+                                </div>
+                                <div class="calendar-grid" id="calendar-grid-container">
+                                    <!-- Injected -->
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+
+
+                    <!-- ================= VIEW 8: AI MARKETING ASSISTANT ================= -->
+                    <section id="view-ai-assistant" class="page-view">
+                        <div class="ai-hero-banner">
+                            <div class="ai-hero-text">
+                                <h2><i data-lucide="sparkles" class="icon-sparkle"></i> Trợ lý AI Marketing Siêu Cấp</h2>
+                                <p>Tự động hóa sáng tạo nội dung, đề xuất ý tưởng viral đa kênh và phân tích chuyên sâu hiệu quả chiến dịch với Human-in-the-Loop review.</p>
+                            </div>
+                            <div class="ai-provider-badge">
+                                <span class="pulse-dot"></span> Động cơ AI: <strong>Smart AI Engine / Gemini Active</strong>
+                            </div>
+                        </div>
+
+                        <div class="ai-tabs-container card">
+                            <div class="ai-nav-tabs">
+                                <button class="ai-tab active" onclick="switchAITab('ideas', event)">
+                                    <i data-lucide="lightbulb"></i> 1. Sinh Ý tưởng Chiến dịch
+                                </button>
+                                <button class="ai-tab" onclick="switchAITab('content', event)">
+                                    <i data-lucide="pen-tool"></i> 2. Soạn Thảo Nội dung & Caption
+                                </button>
+                                <button class="ai-tab" onclick="switchAITab('insights', event)">
+                                    <i data-lucide="trending-up"></i> 3. Phân tích & Gợi ý Tối ưu
+                                </button>
+                                <button class="ai-tab" onclick="switchAITab('logs', event)">
+                                    <i data-lucide="scroll-text"></i> 4. Nhật ký AI SDLC (Prompt Log)
+                                </button>
+                            </div>
+
+                            <!-- AI TAB 1: IDEA GENERATOR -->
+                            <div id="ai-tab-ideas" class="ai-subview active">
+                                <div class="ai-form-grid">
+                                    <div class="ai-form-panel">
+                                        <h3>Thiết lập thông số sinh ý tưởng</h3>
+                                        <div class="form-group">
+                                            <label>Chọn Chiến dịch:</label>
+                                            <select id="ai-idea-campaign-select" class="form-control">
+                                                <option value="">-- Chọn chiến dịch liên kết --</option>
+                                            </select>
+                                        </div>
+                                        <div class="form-group">
+                                            <label>Mục tiêu chiến dịch:</label>
+                                            <input type="text" id="ai-idea-objective" class="form-control" placeholder="VD: Tăng nhận diện thương hiệu, bán hàng..." value="Brand Awareness & Tăng trưởng đơn hàng">
+                                        </div>
+                                        <div class="form-row">
+                                            <div class="form-group col-6">
+                                                <label>Kênh truyền thông:</label>
+                                                <select id="ai-idea-channel" class="form-control">
+                                                    <option value="Facebook">Facebook</option>
+                                                    <option value="TikTok">TikTok</option>
+                                                    <option value="Google Ads">Google Ads</option>
+                                                    <option value="Instagram">Instagram</option>
+                                                    <option value="Email Marketing">Email Marketing</option>
+                                                </select>
+                                            </div>
+                                            <div class="form-group col-6">
+                                                <label>Giọng văn (Tone):</label>
+                                                <select id="ai-idea-tone" class="form-control">
+                                                    <option value="Trẻ trung, năng động, bắt trend">Trẻ trung, bắt trend</option>
+                                                    <option value="Chuyên nghiệp, tin cậy, B2B">Chuyên nghiệp, B2B</option>
+                                                    <option value="Hài hước, gần gũi, viral">Hài hước, Viral</option>
+                                                    <option value="Cảm xúc, câu chuyện truyền cảm hứng">Cảm xúc, Storytelling</option>
+                                                    <option value="Thuyết phục, thúc đẩy mua sắm FOMO">Thúc đẩy mua sắm FOMO</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                        <div class="form-group">
+                                            <label>Tệp khách hàng mục tiêu:</label>
+                                            <input type="text" id="ai-idea-audience" class="form-control" placeholder="VD: Giới trẻ 18-35 tuổi đam mê công nghệ...">
+                                        </div>
+                                        <button type="button" class="btn btn-primary btn-block btn-lg" onclick="triggerAIIdeaGenerator()" id="btn-ai-gen-ideas">
+                                            <i data-lucide="sparkles"></i> AI Sinh 5 Ý Tưởng Sáng Tạo
+                                        </button>
+                                    </div>
+
+                                    <div class="ai-result-panel">
+                                        <div class="result-header">
+                                            <h4>Kết quả Ý tưởng từ AI</h4>
+                                            <span class="badge-tag">Human Review Ready</span>
+                                        </div>
+                                        <div id="ai-idea-results" class="ai-cards-stack">
+                                            <div class="empty-placeholder">
+                                                <i data-lucide="sparkles"></i>
+                                                <p>Nhập thông số và bấm <strong>"AI Sinh 5 Ý Tưởng"</strong> để tạo nội dung sáng tạo tức thì.</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- AI TAB 2: CONTENT GENERATOR -->
+                            <div id="ai-tab-content" class="ai-subview">
+                                <div class="ai-form-grid">
+                                    <div class="ai-form-panel">
+                                        <h3>Thiết lập bài viết AI</h3>
+                                        <div class="form-group">
+                                            <label>Chiến dịch:</label>
+                                            <select id="ai-content-campaign-select" class="form-control">
+                                                <option value="">-- Chọn chiến dịch liên kết --</option>
+                                            </select>
+                                        </div>
+                                        <div class="form-group">
+                                            <label>Chủ đề hoặc Ý tưởng bài viết:</label>
+                                            <textarea id="ai-content-topic" class="form-control" rows="3" placeholder="VD: Khuyến mãi mở bán sớm giảm 30% kèm quà tặng cho khách hàng đặt trước..."></textarea>
+                                        </div>
+                                        <div class="form-row">
+                                            <div class="form-group col-6">
+                                                <label>Kênh phát hành:</label>
+                                                <select id="ai-content-channel" class="form-control">
+                                                    <option value="Facebook">Facebook (Post + Hashtag)</option>
+                                                    <option value="TikTok">TikTok (Kịch bản Video ngắn)</option>
+                                                    <option value="Email Marketing">Email Marketing (Newsletter)</option>
+                                                    <option value="Google Ads">Google Ads (Mẫu quảng cáo)</option>
+                                                    <option value="Instagram">Instagram (Visual Caption)</option>
+                                                </select>
+                                            </div>
+                                            <div class="form-group col-6">
+                                                <label>Phong cách:</label>
+                                                <select id="ai-content-tone" class="form-control">
+                                                    <option value="Trẻ trung, hấp dẫn">Trẻ trung, hấp dẫn</option>
+                                                    <option value="Chuyên nghiệp, sang trọng">Chuyên nghiệp, sang trọng</option>
+                                                    <option value="Thuyết phục, cấp bách">Thuyết phục, cấp bách</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                        <button type="button" class="btn btn-primary btn-block btn-lg" onclick="triggerAIContentGenerator()" id="btn-ai-gen-content">
+                                            <i data-lucide="feather"></i> AI Tạo Bản Nháp Đầy Đủ
+                                        </button>
+                                    </div>
+
+                                    <div class="ai-result-panel">
+                                        <div class="result-header">
+                                            <h4>Bản nháp Nội dung AI</h4>
+                                            <button class="btn btn-sm btn-success" id="btn-push-ai-to-draft" style="display: none;" onclick="pushAIToContentDraft()">
+                                                <i data-lucide="plus-circle"></i> Đưa vào Lịch Đăng & Gửi Duyệt
+                                            </button>
+                                        </div>
+                                        <div id="ai-content-result-box" class="content-preview-box">
+                                            <div class="empty-placeholder">
+                                                <i data-lucide="file-text"></i>
+                                                <p>Nội dung sinh tự động sẽ hiển thị tại đây kèm Hashtags và Call-to-action.</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- AI TAB 3: CAMPAIGN INSIGHTS & OPTIMIZATION -->
+                            <div id="ai-tab-insights" class="ai-subview">
+                                <div class="insight-selector-box">
+                                    <label><i data-lucide="target"></i> Chọn Chiến dịch để AI Phân tích Hiệu suất:</label>
+                                    <div class="insight-input-row">
+                                        <select id="ai-insight-campaign-select" class="form-control">
+                                            <!-- Dynamically filled -->
+                                        </select>
+                                        <button class="btn btn-primary" onclick="triggerAICampaignAnalysis()" id="btn-ai-analyze">
+                                            <i data-lucide="brain"></i> Phân tích Chuyên sâu AI
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <div id="ai-insight-result-container" class="insight-result-area">
+                                    <div class="empty-placeholder">
+                                        <i data-lucide="trending-up"></i>
+                                        <p>Chọn chiến dịch và bấm <strong>"Phân tích Chuyên sâu AI"</strong> để xem đánh giá SWOT và đề xuất ngân sách.</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- AI TAB 4: SDLC PROMPT LOGS -->
+                            <div id="ai-tab-logs" class="ai-subview">
+                                <div class="table-responsive">
+                                    <table class="table">
+                                        <thead>
+                                            <tr>
+                                                <th>Thời gian</th>
+                                                <th>Người thực hiện</th>
+                                                <th>Hành động AI</th>
+                                                <th>Prompt đã dùng</th>
+                                                <th>Phản hồi tóm tắt</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="tbody-ai-logs">
+                                            <!-- Injected -->
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+
+
+                    <!-- ================= VIEW 9: METRICS & REPORTS (EXECUTIVE) ================= -->
+                    <section id="view-metrics" class="page-view">
+                        <div class="card">
+                            <div class="card-header">
+                                <div class="card-title-box">
+                                    <i data-lucide="table"></i>
+                                    <h3>Bảng Ghi Nhận Chỉ Số Marketing Chi Tiết</h3>
+                                </div>
+                                <div class="card-actions">
+                                    <button class="btn btn-outline btn-sm" onclick="exportMetricsJSON()">
+                                        <i data-lucide="download"></i> Xuất Báo Cáo
+                                    </button>
+                                    <button class="btn btn-primary btn-sm" onclick="openRecordMetricModal()">
+                                        <i data-lucide="plus"></i> Ghi nhận Số liệu mới
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="table-responsive">
+                                <table class="table table-hover">
+                                    <thead>
+                                        <tr>
+                                            <th>Ngày</th>
+                                            <th>Chiến dịch</th>
+                                            <th>Kênh</th>
+                                            <th>Lượt xem (Imp)</th>
+                                            <th>Clicks (CTR)</th>
+                                            <th>Chuyển đổi (CPA)</th>
+                                            <th>Chi phí (Spend)</th>
+                                            <th>Doanh thu (ROI)</th>
+                                            <th>Ghi chú</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="tbody-metrics-table">
+                                        <!-- Injected -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </section>
+
+
+                    <!-- ================= VIEW 10: SETTINGS & PROFILE ================= -->
+                    <section id="view-settings" class="page-view">
+                        <div class="settings-grid">
+                            <div class="card">
+                                <div class="card-header">
+                                    <div class="card-title-box">
+                                        <i data-lucide="user-check"></i>
+                                        <h3>Thông tin Tài khoản & Vai trò</h3>
+                                    </div>
+                                </div>
+                                <div class="user-profile-view">
+                                    <img id="settings-avatar" src="" alt="Avatar" class="avatar-large">
+                                    <div class="profile-details">
+                                        <h4 id="settings-fullname">Nguyễn Văn Quản Lý</h4>
+                                        <p id="settings-email">admin@marketing.ai</p>
+                                        <span class="role-tag" id="settings-role-tag">Quản lý (Manager)</span>
+                                    </div>
+                                </div>
+
+                                <div class="role-switch-demo-box">
+                                    <h5>Chuyển đổi tài khoản nhanh để kiểm thử phân quyền RBAC:</h5>
+                                    <div class="btn-group-roles">
+                                        <button class="btn btn-outline btn-quick-manager" onclick="quickFillAndLogin('admin@marketing.ai', 'admin123')">
+                                            <i data-lucide="shield"></i> Đăng nhập làm QUẢN LÝ (Full quyền Duyệt & CRUD)
+                                        </button>
+                                        <button class="btn btn-outline btn-quick-marketer" onclick="quickFillAndLogin('marketer@marketing.ai', 'marketer123')">
+                                            <i data-lucide="user"></i> Đăng nhập làm NHÂN VIÊN (Tạo nội dung & Gửi duyệt)
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="card manager-only">
+                                <div class="card-header">
+                                    <div class="card-title-box">
+                                        <i data-lucide="cpu"></i>
+                                        <h3>Cấu hình AI Engine & Nhà cung cấp</h3>
+                                    </div>
+                                </div>
+                                <form id="ai-config-form" onsubmit="handleSaveAIConfig(event)">
+                                    <div class="form-group">
+                                        <label>Chế độ AI hiện tại:</label>
+                                        <select id="ai-provider-select" class="form-control">
+                                            <option value="smart-engine">Tích hợp Smart Rule-based AI Engine (Sẵn sàng chạy không cần key)</option>
+                                            <option value="gemini">Google Gemini API (1.5 Flash)</option>
+                                            <option value="openai">OpenAI ChatGPT (GPT-3.5 / GPT-4)</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-group">
+                                        <label>Google Gemini API Key (Tùy chọn):</label>
+                                        <input type="password" id="cfg-gemini-key" class="form-control" placeholder="AIzaSy...">
+                                    </div>
+                                    <div class="form-group">
+                                        <label>OpenAI API Key (Tùy chọn):</label>
+                                        <input type="password" id="cfg-openai-key" class="form-control" placeholder="sk-proj-...">
+                                    </div>
+                                    <button type="submit" class="btn btn-primary">
+                                        <i data-lucide="save"></i> Lưu cấu hình AI
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    </section>
+
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <!-- ================= MODALS ================= -->
+
+    <!-- MODAL 1: CREATE / EDIT CAMPAIGN -->
+    <div id="modal-campaign" class="modal-backdrop">
+        <div class="modal-dialog">
+            <div class="modal-header">
+                <h3 id="modal-campaign-title">Tạo Chiến dịch Marketing Mới</h3>
+                <button type="button" class="btn-close" onclick="closeModal('modal-campaign')"><i data-lucide="x"></i></button>
+            </div>
+            <form id="form-campaign" onsubmit="handleSaveCampaign(event)">
+                <input type="hidden" id="campaign-edit-id">
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label>Tên chiến dịch: <span class="required">*</span></label>
+                        <input type="text" id="camp-form-name" class="form-control" required placeholder="VD: Ra mắt Bộ sưu tập Mùa Thu 2026">
+                    </div>
+                    <div class="form-group">
+                        <label>Mục tiêu chiến dịch: <span class="required">*</span></label>
+                        <input type="text" id="camp-form-objective" class="form-control" required placeholder="VD: Lead Generation, Brand Awareness, Sales...">
+                    </div>
+                    <div class="form-group">
+                        <label>Tệp khách hàng mục tiêu:</label>
+                        <input type="text" id="camp-form-audience" class="form-control" placeholder="VD: Nam nữ 22-45 tuổi yêu thích du lịch...">
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group col-6">
+                            <label>Ngân sách dự kiến (VNĐ): <span class="required">*</span></label>
+                            <input type="number" id="camp-form-budget" class="form-control" required min="0" step="500000" placeholder="50000000">
+                        </div>
+                        <div class="form-group col-6">
+                            <label>Trạng thái:</label>
+                            <select id="camp-form-status" class="form-control">
+                                <option value="planning">Lập kế hoạch (Planning)</option>
+                                <option value="active">Đang chạy (Active)</option>
+                                <option value="paused">Tạm dừng (Paused)</option>
+                                <option value="completed">Đã kết thúc (Completed)</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group col-6">
+                            <label>Ngày bắt đầu: <span class="required">*</span></label>
+                            <input type="date" id="camp-form-start-date" class="form-control" required>
+                        </div>
+                        <div class="form-group col-6">
+                            <label>Ngày kết thúc: <span class="required">*</span></label>
+                            <input type="date" id="camp-form-end-date" class="form-control" required>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Mô tả chi tiết chiến dịch:</label>
+                        <textarea id="camp-form-desc" class="form-control" rows="3" placeholder="Mô tả chiến lược và thông điệp cốt lõi..."></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline" onclick="closeModal('modal-campaign')">Hủy</button>
+                    <button type="submit" class="btn btn-primary" id="btn-save-campaign"><i data-lucide="check"></i> Lưu chiến dịch</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+
+    <!-- MODAL 2: CREATE / EDIT POST (CONTENT) -->
+    <div id="modal-post" class="modal-backdrop">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-header">
+                <h3 id="modal-post-title">Tạo Bài Viết & Lịch Đăng Mới</h3>
+                <button type="button" class="btn-close" onclick="closeModal('modal-post')"><i data-lucide="x"></i></button>
+            </div>
+            <form id="form-post" onsubmit="handleSavePost(event)">
+                <input type="hidden" id="post-edit-id">
+                <div class="modal-body">
+                    <div class="form-row">
+                        <div class="form-group col-6">
+                            <label>Chiến dịch: <span class="required">*</span></label>
+                            <select id="post-form-campaign" class="form-control" required>
+                                <!-- Dynamically populated -->
+                            </select>
+                        </div>
+                        <div class="form-group col-6">
+                            <label>Kênh truyền thông: <span class="required">*</span></label>
+                            <select id="post-form-channel" class="form-control" required>
+                                <!-- Dynamically populated -->
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Tiêu đề bài viết / Headline: <span class="required">*</span></label>
+                        <input type="text" id="post-form-title" class="form-control" required placeholder="VD: 🔥 BÙNG NỔ ƯU ĐÃI KHAI XUÂN 2026...">
+                    </div>
+                    <div class="form-group">
+                        <div class="label-row">
+                            <label>Nội dung chi tiết: <span class="required">*</span></label>
+                            <button type="button" class="btn-link-ai" onclick="openAIGenForCurrentPost()">
+                                <i data-lucide="sparkles"></i> Dùng AI viết giúp
+                            </button>
+                        </div>
+                        <textarea id="post-form-content" class="form-control" rows="6" required placeholder="Nhập nội dung bài đăng..."></textarea>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group col-6">
+                            <label>Hashtags:</label>
+                            <input type="text" id="post-form-hashtags" class="form-control" placeholder="#Marketing #Campaign #Sale">
+                        </div>
+                        <div class="form-group col-6">
+                            <label>Lời kêu gọi hành động (CTA):</label>
+                            <input type="text" id="post-form-cta" class="form-control" placeholder="VD: Nhấp link đăng ký ngay hôm nay!">
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group col-6">
+                            <label>Lịch đăng bài:</label>
+                            <input type="datetime-local" id="post-form-scheduled" class="form-control">
+                        </div>
+                        <div class="form-group col-6">
+                            <label>Trạng thái ban đầu:</label>
+                            <select id="post-form-status" class="form-control">
+                                <option value="draft">Bản nháp (Draft)</option>
+                                <option value="in_review">Gửi duyệt lên Quản lý (In Review)</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline" onclick="closeModal('modal-post')">Hủy</button>
+                    <button type="submit" class="btn btn-primary"><i data-lucide="save"></i> Lưu bài viết</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+
+    <!-- MODAL 3: REVIEW POST (HUMAN IN THE LOOP) -->
+    <div id="modal-review-post" class="modal-backdrop">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-header">
+                <h3>Phê Duyệt Nội Dung Marketing (Human-in-the-Loop)</h3>
+                <button type="button" class="btn-close" onclick="closeModal('modal-review-post')"><i data-lucide="x"></i></button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="review-post-id">
+                <div class="review-post-preview">
+                    <h4 id="review-post-title">Tiêu đề bài viết</h4>
+                    <div class="meta-tag-row">
+                        <span class="badge-tag" id="review-post-channel">Facebook</span>
+                        <span class="badge-tag" id="review-post-campaign">Chiến dịch</span>
+                        <span class="badge-tag" id="review-post-author">Tác giả</span>
+                        <span class="badge-ai-flag" id="review-post-ai-tag" style="display: none;"><i data-lucide="sparkles"></i> AI Generated</span>
+                    </div>
+                    <div class="review-content-box" id="review-post-body"></div>
+                </div>
+
+                <div class="form-group" style="margin-top: 1rem;">
+                    <label>Ý kiến phản hồi / Lời nhắn góp ý của Quản lý gửi nhân viên:</label>
+                    <textarea id="review-feedback-input" class="form-control" rows="3" placeholder="Nhập nhận xét hoặc yêu cầu chỉnh sửa (sẽ gửi vào Hộp thư Góp ý của nhân viên)..."></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-danger" onclick="executePostReview('reject')">
+                    <i data-lucide="x-circle"></i> Từ chối (Yêu cầu nhân viên sửa lại)
+                </button>
+                <button type="button" class="btn btn-success" onclick="executePostReview('approve')">
+                    <i data-lucide="check-circle-2"></i> Phê Duyệt Bài Viết
+                </button>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- MODAL 4: RECORD METRIC -->
+    <div id="modal-record-metric" class="modal-backdrop">
+        <div class="modal-dialog">
+            <div class="modal-header">
+                <h3>Ghi Nhận Chỉ Số Marketing</h3>
+                <button type="button" class="btn-close" onclick="closeModal('modal-record-metric')"><i data-lucide="x"></i></button>
+            </div>
+            <form id="form-record-metric" onsubmit="handleSaveMetric(event)">
+                <div class="modal-body">
+                    <div class="form-row">
+                        <div class="form-group col-6">
+                            <label>Chiến dịch: <span class="required">*</span></label>
+                            <select id="metric-form-campaign" class="form-control" required></select>
+                        </div>
+                        <div class="form-group col-6">
+                            <label>Kênh: <span class="required">*</span></label>
+                            <select id="metric-form-channel" class="form-control" required></select>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Ngày ghi nhận: <span class="required">*</span></label>
+                        <input type="date" id="metric-form-date" class="form-control" required>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group col-6">
+                            <label>Lượt xem (Impressions):</label>
+                            <input type="number" id="metric-form-impressions" class="form-control" min="0" placeholder="10000">
+                        </div>
+                        <div class="form-group col-6">
+                            <label>Lượt nhấp (Clicks):</label>
+                            <input type="number" id="metric-form-clicks" class="form-control" min="0" placeholder="500">
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group col-6">
+                            <label>Chuyển đổi (Conversions):</label>
+                            <input type="number" id="metric-form-conversions" class="form-control" min="0" placeholder="25">
+                        </div>
+                        <div class="form-group col-6">
+                            <label>Chi phí thực chi (VNĐ):</label>
+                            <input type="number" id="metric-form-spend" class="form-control" min="0" step="100000" placeholder="2000000">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Doanh thu tạo ra (VNĐ):</label>
+                        <input type="number" id="metric-form-revenue" class="form-control" min="0" step="100000" placeholder="10000000">
+                    </div>
+                    <div class="form-group">
+                        <label>Ghi chú:</label>
+                        <input type="text" id="metric-form-notes" class="form-control" placeholder="Ghi chú về đợt chạy quảng cáo...">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline" onclick="closeModal('modal-record-metric')">Hủy</button>
+                    <button type="submit" class="btn btn-primary"><i data-lucide="plus"></i> Lưu Số Liệu</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+
+    <!-- MODAL 5: REGISTER ACCOUNT -->
+    <div id="modal-register" class="modal-backdrop">
+        <div class="modal-dialog">
+            <div class="modal-header">
+                <h3>Đăng Ký Tài Khoản Mới</h3>
+                <button type="button" class="btn-close" onclick="closeModal('modal-register')"><i data-lucide="x"></i></button>
+            </div>
+            <form id="form-register" onsubmit="handleRegister(event)">
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label>Họ và tên: <span class="required">*</span></label>
+                        <input type="text" id="reg-name" class="form-control" required placeholder="VD: Lê Văn An">
+                    </div>
+                    <div class="form-group">
+                        <label>Email: <span class="required">*</span></label>
+                        <input type="email" id="reg-email" class="form-control" required placeholder="user@company.com">
+                    </div>
+                    <div class="form-group">
+                        <label>Mật khẩu: <span class="required">*</span></label>
+                        <input type="password" id="reg-password" class="form-control" required placeholder="Tối thiểu 6 ký tự" autocomplete="new-password">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline" onclick="closeModal('modal-register')">Đóng</button>
+                    <button type="submit" class="btn btn-primary"><i data-lucide="user-plus"></i> Đăng ký</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- TOAST NOTIFICATIONS CONTAINER -->
+    <div id="toast-container" class="toast-container"></div>
+
+    <!-- JS SCRIPTS -->
+    <script src="/static/js/api.js"></script>
+    <script src="/static/js/auth.js"></script>
+    <script src="/static/js/dashboard.js"></script>
+    <script src="/static/js/campaigns.js"></script>
+    <script src="/static/js/content.js"></script>
+    <script src="/static/js/ai_tools.js"></script>
+    <script src="/static/js/app.js"></script>
+</body>
+</html>
