@@ -91,7 +91,7 @@ function renderCampaignGrid(campaigns) {
     }
 
     const currentUser = api.getUser();
-    const isManager = currentUser && currentUser.role === "manager";
+    const isManager = currentUser && isManagementRole(currentUser.role);
 
     grid.innerHTML = campaigns.map(c => {
         const spendRate = c.budget > 0 ? ((c.total_spend / c.budget) * 100).toFixed(1) : 0;

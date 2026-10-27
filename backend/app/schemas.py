@@ -6,7 +6,6 @@ from datetime import datetime
 class UserBase(BaseModel):
     email: str
     full_name: str
-    role: str = "marketer"  # "manager" or "marketer"
     avatar_url: Optional[str] = None
 
 class UserCreate(UserBase):
@@ -18,6 +17,7 @@ class UserLogin(BaseModel):
 
 class UserResponse(UserBase):
     id: int
+    role: str
     is_active: bool
     created_at: datetime
 

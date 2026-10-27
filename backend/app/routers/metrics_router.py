@@ -6,7 +6,7 @@ from datetime import datetime, timedelta
 from ..database import get_db
 from ..models import Metric, Campaign, Channel, Post, User
 from ..schemas import MetricCreate, MetricResponse, DashboardSummary
-from ..auth import get_current_user
+from ..auth import get_current_user, require_manager, require_role
 
 router = APIRouter(prefix="/api/metrics", tags=["Metrics & Analytics"])
 
@@ -22,7 +22,7 @@ def get_metrics(
     campaign_id: Optional[int] = Query(None),
     channel_id: Optional[int] = Query(None),
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(require_manager)
 ):
     query = db.query(Metric)
     if campaign_id:
@@ -59,7 +59,7 @@ def get_metrics(
 def create_metric(
     metric_in: MetricCreate,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(require_manager)
 ):
     campaign = db.query(Campaign).filter(Campaign.id == metric_in.campaign_id).first()
     if not campaign:
@@ -101,7 +101,7 @@ def create_metric(
 @router.get("/dashboard", response_model=DashboardSummary)
 def get_dashboard_summary(
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(require_manager)
 ):
     # Total & active campaigns
     total_campaigns = db.query(Campaign).count()
@@ -241,7 +241,7 @@ def get_dashboard_summary(
 @router.get("/marketer-dashboard")
 def get_marketer_dashboard(
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(require_role(["marketer"]))
 ):
     # Personal post counts
     my_posts = db.query(Post).filter(Post.author_id == current_user.id).all()

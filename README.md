@@ -33,10 +33,11 @@
 
 | Vai trò | Email | Mật khẩu | Quyền hạn |
 | :--- | :--- | :--- | :--- |
-| **Quản lý (Manager / Admin)** | `admin@marketing.ai` | `admin123` | Toàn quyền CRUD, Duyệt/Từ chối bài viết, Báo cáo tài chính |
-| **Nhân viên (Marketer)** | `marketer@marketing.ai` | `marketer123` | Tạo chiến dịch, Dùng AI viết bài, Gửi duyệt nội dung |
+| **Quản trị viên (Admin)** | `admin@marketing.ai` | `admin123` | Quản trị hệ thống, quản lý đội ngũ, duyệt nội dung và xem báo cáo |
+| **Quản lý (Manager)** | `manager@marketing.ai` | `manager123` | Quản lý chiến dịch, đội ngũ, duyệt nội dung và xem báo cáo |
+| **Nhân viên mẫu (Marketer)** | `marketer@marketing.ai` | `marketer123` | Tạo chiến dịch và nội dung, sử dụng AI, gửi bài duyệt |
 
-*(Hệ thống có sẵn các nút bấm 1-click **"Đăng nhập nhanh"** ngay tại màn hình đăng nhập để kiểm thử).*
+Mỗi hệ thống chỉ khởi tạo một tài khoản Admin và một tài khoản Manager. Người dùng có thể tự đăng ký nhiều tài khoản nhân viên; vai trò nhân viên được gán tự động và không thể nâng quyền qua dữ liệu gửi từ trình duyệt.
 
 ---
 

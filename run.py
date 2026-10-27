@@ -18,7 +18,8 @@ if __name__ == "__main__":
         print(f"👉 Website: http://127.0.0.1:{port}")
         print(f"👉 Swagger API Docs: http://127.0.0.1:{port}/docs")
 
-    print("👉 Tài khoản Quản lý: admin@marketing.ai / admin123")
+    print("👉 Tài khoản Admin: admin@marketing.ai / admin123")
+    print("👉 Tài khoản Quản lý: manager@marketing.ai / manager123")
     print("👉 Tài khoản Marketer: marketer@marketing.ai / marketer123")
     print("=====================================================================")
 

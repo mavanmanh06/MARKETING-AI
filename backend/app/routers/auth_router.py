@@ -4,7 +4,7 @@ from sqlalchemy import func
 from ..database import get_db
 from ..models import User, Post, Campaign
 from ..schemas import UserLogin, UserCreate, Token, UserResponse
-from ..auth import verify_password, hash_password, create_access_token, get_current_user
+from ..auth import verify_password, hash_password, create_access_token, get_current_user, require_manager
 
 router = APIRouter(prefix="/api/auth", tags=["Authentication"])
 
@@ -56,11 +56,11 @@ def get_me(current_user: User = Depends(get_current_user)):
     return current_user
 
 @router.get("/users", response_model=list[UserResponse])
-def get_all_users(db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+def get_all_users(db: Session = Depends(get_db), current_user: User = Depends(require_manager)):
     return db.query(User).all()
 
 @router.get("/team-stats")
-def get_team_stats(db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+def get_team_stats(db: Session = Depends(get_db), current_user: User = Depends(require_manager)):
     users = db.query(User).all()
     result = []
     for u in users:

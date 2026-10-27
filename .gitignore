@@ -12,6 +12,7 @@ ENV/
 
 # Environment variables
 .env
+APIkey.env
 
 # Testing / cache
 .pytest_cache/

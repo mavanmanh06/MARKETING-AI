@@ -10,7 +10,7 @@ class User(Base):
     email = Column(String(255), unique=True, index=True, nullable=False)
     hashed_password = Column(String(255), nullable=False)
     full_name = Column(String(255), nullable=False)
-    role = Column(String(50), default="marketer", nullable=False)  # "manager" or "marketer"
+    role = Column(String(50), default="marketer", nullable=False)  # "admin", "manager", or "marketer"
     avatar_url = Column(String(500), nullable=True)
     is_active = Column(Boolean, default=True)
     created_at = Column(DateTime, default=datetime.utcnow)
@@ -143,4 +143,3 @@ class LoginLog(Base):
     status = Column(String(50), default="success")  # success / failed
     role = Column(String(50), nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow)
-

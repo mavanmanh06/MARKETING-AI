@@ -4,7 +4,7 @@ function switchView(viewName, e) {
     if (e) e.preventDefault();
 
     const user = api.getUser();
-    const isManager = user && user.role === "manager";
+    const isManager = user && isManagementRole(user.role);
 
     // Update active nav items across both suites
     document.querySelectorAll(".sidebar-nav .nav-item").forEach(item => {
@@ -219,7 +219,7 @@ async function initAppAfterAuth() {
     await loadCampaigns();
 
     // Direct user to their respective default dashboard
-    if (user.role === "manager") {
+    if (isManagementRole(user.role)) {
         switchView("dashboard");
     } else {
         switchView("marketer-workspace");

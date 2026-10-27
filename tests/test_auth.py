@@ -12,7 +12,15 @@ def test_login_admin():
     assert response.status_code == 200
     data = response.json()
     assert "access_token" in data
-    assert data["user"]["role"] == "manager"
+    assert data["user"]["role"] == "admin"
+
+def test_login_manager():
+    response = client.post("/api/auth/login", json={
+        "email": "manager@marketing.ai",
+        "password": "manager123"
+    })
+    assert response.status_code == 200
+    assert response.json()["user"]["role"] == "manager"
 
 def test_login_marketer():
     response = client.post("/api/auth/login", json={
@@ -49,3 +57,13 @@ def test_register_standard_user():
     assert data["role"] == "marketer"
     assert data["email"] == unique_email
 
+def test_registration_cannot_create_management_accounts():
+    import uuid
+    response = client.post("/api/auth/register", json={
+        "full_name": "Test Admin",
+        "email": f"admin_{uuid.uuid4().hex[:8]}@example.com",
+        "password": "password123",
+        "role": "admin"
+    })
+    assert response.status_code == 200
+    assert response.json()["role"] == "marketer"

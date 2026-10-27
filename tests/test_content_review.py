@@ -28,6 +28,16 @@ def test_content_review_workflow():
     post_id = create_resp.json()["id"]
     assert create_resp.json()["status"] == "draft"
 
+    # Employees cannot create or edit posts as already approved or published.
+    elevated_create = client.post("/api/content", json={
+        **post_payload,
+        "title": "Bài viết tự duyệt",
+        "status": "approved"
+    }, headers=marketer_headers)
+    assert elevated_create.status_code == 403
+    elevated_update = client.put(f"/api/content/{post_id}", json={"status": "published"}, headers=marketer_headers)
+    assert elevated_update.status_code == 403
+
     # 2. Marketer submits for review
     submit_resp = client.put(f"/api/content/{post_id}/review", json={"action": "submit_for_review"}, headers=marketer_headers)
     assert submit_resp.status_code == 200
@@ -63,4 +73,3 @@ def test_team_stats_and_marketer_dashboard():
     assert "approval_rate" in dash_data
     assert "recent_drafts" in dash_data
     assert "feedbacks" in dash_data
-

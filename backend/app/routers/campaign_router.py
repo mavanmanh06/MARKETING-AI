@@ -6,7 +6,7 @@ from datetime import datetime
 from ..database import get_db
 from ..models import Campaign, Channel, Metric, Post, User
 from ..schemas import CampaignCreate, CampaignUpdate, CampaignResponse, ChannelCreate, ChannelResponse
-from ..auth import get_current_user, require_manager
+from ..auth import get_current_user, require_manager, is_management_role
 
 router = APIRouter(prefix="/api", tags=["Campaigns & Channels"])
 
@@ -197,7 +197,7 @@ def update_campaign(
         raise HTTPException(status_code=404, detail="Không tìm thấy chiến dịch")
 
     # Marketer can only edit their own campaigns, Manager can edit any
-    if current_user.role != "manager" and c.created_by_id != current_user.id:
+    if not is_management_role(current_user) and c.created_by_id != current_user.id:
         raise HTTPException(status_code=403, detail="Bạn chỉ có thể chỉnh sửa chiến dịch do bạn tạo")
 
     update_data = campaign_in.model_dump(exclude_unset=True)

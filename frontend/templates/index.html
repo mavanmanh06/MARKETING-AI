@@ -184,14 +184,6 @@
                     </div>
 
                     <div class="header-right">
-                        <!-- Quick Role Switch Pill Button -->
-                        <div class="header-role-switch-box">
-                            <button class="btn-role-switch" onclick="toggleSwitchRole()" id="btn-header-role-switch" title="Chuyển đổi giao diện để trải nghiệm">
-                                <i data-lucide="repeat"></i>
-                                <span id="header-role-switch-label">Đang xem: <strong>Quản lý</strong> (Bấm chuyển <strong>Nhân viên</strong>)</span>
-                            </button>
-                        </div>
-
                         <!-- Dynamic Header Actions based on Role -->
                         <div class="header-actions" id="header-actions-container">
                             <!-- Injected by JS -->
@@ -986,15 +978,8 @@
                                 </div>
 
                                 <div class="role-switch-demo-box">
-                                    <h5>Chuyển đổi tài khoản nhanh để kiểm thử phân quyền RBAC:</h5>
-                                    <div class="btn-group-roles">
-                                        <button class="btn btn-outline btn-quick-manager" onclick="quickFillAndLogin('admin@marketing.ai', 'admin123')">
-                                            <i data-lucide="shield"></i> Đăng nhập làm QUẢN LÝ (Full quyền Duyệt & CRUD)
-                                        </button>
-                                        <button class="btn btn-outline btn-quick-marketer" onclick="quickFillAndLogin('marketer@marketing.ai', 'marketer123')">
-                                            <i data-lucide="user"></i> Đăng nhập làm NHÂN VIÊN (Tạo nội dung & Gửi duyệt)
-                                        </button>
-                                    </div>
+                                    <h5>Vai trò được gán theo tài khoản và không thể tự thay đổi.</h5>
+                                    <p class="text-muted">Tài khoản đăng ký mới luôn có quyền Nhân viên. Admin và Quản lý được khởi tạo riêng khi cài đặt hệ thống.</p>
                                 </div>
                             </div>
 

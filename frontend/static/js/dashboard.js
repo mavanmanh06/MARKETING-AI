@@ -7,7 +7,7 @@ async function loadDashboardData() {
     const user = api.getUser();
     if (!user) return;
 
-    if (user.role === "manager") {
+    if (isManagementRole(user.role)) {
         await loadExecutiveDashboard();
     } else {
         await loadMarketerWorkspaceData();

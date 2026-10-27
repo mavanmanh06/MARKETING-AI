@@ -25,7 +25,7 @@ async function loadContent() {
         
         const user = api.getUser();
         if (user) {
-            if (user.role === "manager") {
+            if (isManagementRole(user.role)) {
                 renderApprovalCenter();
                 loadTeamManagement();
             } else {
@@ -48,7 +48,7 @@ function renderContentList(posts) {
     }
 
     const currentUser = api.getUser();
-    const isManager = currentUser && currentUser.role === "manager";
+    const isManager = currentUser && isManagementRole(currentUser.role);
 
     tbody.innerHTML = posts.map(p => {
         const isAI = p.ai_generated ? `<span class="badge-ai-flag"><i data-lucide="sparkles"></i> AI</span>` : `<span class="badge-tag">Thủ công</span>`;
@@ -127,7 +127,7 @@ function renderKanbanBoard(posts) {
     ];
 
     const currentUser = api.getUser();
-    const isManager = currentUser && currentUser.role === "manager";
+    const isManager = currentUser && isManagementRole(currentUser.role);
 
     container.innerHTML = columns.map(col => {
         const colPosts = posts.filter(p => p.status === col.status);
@@ -439,9 +439,11 @@ async function loadTeamManagement() {
         if (elAvgPass) elAvgPass.textContent = `${avgPassRate}%`;
 
         tbody.innerHTML = team.map(u => {
-            const roleBadge = u.role === "manager" 
-                ? `<span class="user-role-badge manager-badge">🛡️ Quản lý (Admin)</span>`
-                : `<span class="user-role-badge marketer-badge">⚡ Marketer</span>`;
+            const roleBadge = u.role === "admin"
+                ? `<span class="user-role-badge manager-badge">🛡️ Quản trị viên</span>`
+                : u.role === "manager"
+                    ? `<span class="user-role-badge manager-badge">🛡️ Quản lý</span>`
+                    : `<span class="user-role-badge marketer-badge">⚡ Nhân viên</span>`;
             
             return `
                 <tr>

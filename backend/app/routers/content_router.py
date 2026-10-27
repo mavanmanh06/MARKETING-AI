@@ -6,7 +6,7 @@ from datetime import datetime
 from ..database import get_db
 from ..models import Post, Campaign, Channel, User
 from ..schemas import PostCreate, PostUpdate, PostResponse, PostReviewRequest
-from ..auth import get_current_user, require_manager
+from ..auth import get_current_user, require_manager, is_management_role
 
 router = APIRouter(prefix="/api/content", tags=["Content & Calendar"])
 
@@ -48,13 +48,15 @@ def get_posts(
     current_user: User = Depends(get_current_user)
 ):
     query = db.query(Post)
+    if not is_management_role(current_user):
+        query = query.filter(Post.author_id == current_user.id)
     if campaign_id:
         query = query.filter(Post.campaign_id == campaign_id)
     if channel_id:
         query = query.filter(Post.channel_id == channel_id)
     if status and status != "all":
         query = query.filter(Post.status == status)
-    if author_id:
+    if author_id and is_management_role(current_user):
         query = query.filter(Post.author_id == author_id)
     if search:
         search_fmt = f"%{search}%"
@@ -78,6 +80,9 @@ def create_post(
     if not channel:
         raise HTTPException(status_code=400, detail="Không tìm thấy kênh được chọn")
 
+    if not is_management_role(current_user) and post_in.status in ("approved", "published"):
+        raise HTTPException(status_code=403, detail="Nhân viên không thể tự duyệt hoặc xuất bản bài viết")
+
     new_post = Post(
         **post_in.model_dump(),
         author_id=current_user.id
@@ -96,6 +101,8 @@ def get_post(
     p = db.query(Post).filter(Post.id == post_id).first()
     if not p:
         raise HTTPException(status_code=404, detail="Không tìm thấy bài viết")
+    if not is_management_role(current_user) and p.author_id != current_user.id:
+        raise HTTPException(status_code=404, detail="Không tìm thấy bài viết")
     return _enrich_post_response(p)
 
 @router.put("/{post_id}", response_model=PostResponse)
@@ -110,10 +117,12 @@ def update_post(
         raise HTTPException(status_code=404, detail="Không tìm thấy bài viết")
 
     # Only author or manager can update
-    if current_user.role != "manager" and p.author_id != current_user.id:
+    if not is_management_role(current_user) and p.author_id != current_user.id:
         raise HTTPException(status_code=403, detail="Bạn không có quyền chỉnh sửa bài viết của người khác")
 
     update_data = post_in.model_dump(exclude_unset=True)
+    if not is_management_role(current_user) and update_data.get("status") in ("approved", "published"):
+        raise HTTPException(status_code=403, detail="Nhân viên không thể tự duyệt hoặc xuất bản bài viết")
     for key, value in update_data.items():
         setattr(p, key, value)
     
@@ -132,7 +141,7 @@ def delete_post(
     if not p:
         raise HTTPException(status_code=404, detail="Không tìm thấy bài viết")
 
-    if current_user.role != "manager" and p.author_id != current_user.id:
+    if not is_management_role(current_user) and p.author_id != current_user.id:
         raise HTTPException(status_code=403, detail="Bạn không có quyền xóa bài viết này")
 
     db.delete(p)
@@ -151,13 +160,15 @@ def review_post(
         raise HTTPException(status_code=404, detail="Không tìm thấy bài viết")
 
     action = review_in.action.lower()
+    if not is_management_role(current_user) and p.author_id != current_user.id:
+        raise HTTPException(status_code=404, detail="Không tìm thấy bài viết")
 
     if action == "submit_for_review":
         # Any user can submit their own draft for review
         p.status = "in_review"
     elif action == "approve":
         # Only manager can approve
-        if current_user.role != "manager":
+        if not is_management_role(current_user):
             raise HTTPException(status_code=403, detail="Chỉ Quản lý (Manager) mới có quyền duyệt bài viết")
         p.status = "approved"
         p.reviewer_id = current_user.id
@@ -165,13 +176,15 @@ def review_post(
         p.reviewed_at = datetime.utcnow()
     elif action == "reject":
         # Only manager can reject
-        if current_user.role != "manager":
+        if not is_management_role(current_user):
             raise HTTPException(status_code=403, detail="Chỉ Quản lý (Manager) mới có quyền từ chối bài viết")
         p.status = "rejected"
         p.reviewer_id = current_user.id
         p.reviewer_feedback = review_in.feedback or "Cần chỉnh sửa lại câu từ và bổ sung thông tin."
         p.reviewed_at = datetime.utcnow()
     elif action == "publish":
+        if p.status != "approved":
+            raise HTTPException(status_code=400, detail="Chỉ có thể xuất bản bài viết đã được duyệt")
         p.status = "published"
         p.published_at = datetime.utcnow()
     else:
@@ -187,7 +200,10 @@ def get_calendar_events(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
-    posts = db.query(Post).filter(Post.scheduled_at != None).all()
+    query = db.query(Post).filter(Post.scheduled_at != None)
+    if not is_management_role(current_user):
+        query = query.filter(Post.author_id == current_user.id)
+    posts = query.all()
     events = []
     for p in posts:
         events.append({

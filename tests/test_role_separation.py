@@ -24,8 +24,8 @@ def test_static_html_contains_role_suites():
     assert "marketer-hero-card" in html
     assert "ai-fast-creator-card" in html
 
-    # Check Header switcher
-    assert "btn-header-role-switch" in html
+    # Role switching must require a separate login.
+    assert "toggleSwitchRole" not in html
     assert "header-role-banner" in html
 
 def test_manager_role_endpoints():
@@ -33,7 +33,7 @@ def test_manager_role_endpoints():
     assert login_resp.status_code == 200
     token = login_resp.json()["access_token"]
     user = login_resp.json()["user"]
-    assert user["role"] == "manager"
+    assert user["role"] == "admin"
     headers = {"Authorization": f"Bearer {token}"}
 
     # 1. Executive Dashboard summary
@@ -48,12 +48,61 @@ def test_manager_role_endpoints():
     assert team_resp.status_code == 200
     team = team_resp.json()
     assert len(team) >= 2
-    assert any(m["email"] == "admin@marketing.ai" and m["role"] == "manager" for m in team)
+    assert sum(m["role"] == "admin" for m in team) == 1
+    assert sum(m["role"] == "manager" for m in team) == 1
+    assert any(m["email"] == "admin@marketing.ai" and m["role"] == "admin" for m in team)
+    assert any(m["email"] == "manager@marketing.ai" and m["role"] == "manager" for m in team)
     assert any(m["email"] == "marketer@marketing.ai" and m["role"] == "marketer" for m in team)
 
     # 3. Approval Center posts query
     in_review_resp = client.get("/api/content?status=in_review", headers=headers)
     assert in_review_resp.status_code == 200
+
+def test_manager_account_has_management_permissions():
+    login_resp = client.post("/api/auth/login", json={"email": "manager@marketing.ai", "password": "manager123"})
+    assert login_resp.status_code == 200
+    headers = {"Authorization": f"Bearer {login_resp.json()['access_token']}"}
+
+    assert login_resp.json()["user"]["role"] == "manager"
+    assert client.get("/api/metrics/dashboard", headers=headers).status_code == 200
+    assert client.get("/api/auth/users", headers=headers).status_code == 200
+
+def test_marketer_cannot_access_management_data():
+    login_resp = client.post("/api/auth/login", json={"email": "marketer@marketing.ai", "password": "marketer123"})
+    headers = {"Authorization": f"Bearer {login_resp.json()['access_token']}"}
+
+    assert client.get("/api/auth/users", headers=headers).status_code == 403
+    assert client.get("/api/auth/team-stats", headers=headers).status_code == 403
+    assert client.get("/api/metrics/dashboard", headers=headers).status_code == 403
+    assert client.get("/api/metrics", headers=headers).status_code == 403
+
+def test_marketer_cannot_read_other_users_posts():
+    import uuid
+
+    admin_login = client.post("/api/auth/login", json={"email": "admin@marketing.ai", "password": "admin123"})
+    admin_headers = {"Authorization": f"Bearer {admin_login.json()['access_token']}"}
+    post_resp = client.post("/api/content", json={
+        "campaign_id": 1,
+        "channel_id": 1,
+        "title": "Bài viết riêng tư",
+        "content": "Nội dung chỉ quản trị viên tạo.",
+        "status": "draft"
+    }, headers=admin_headers)
+    assert post_resp.status_code == 200
+    post_id = post_resp.json()["id"]
+
+    email = f"staff_{uuid.uuid4().hex[:8]}@example.com"
+    register_resp = client.post("/api/auth/register", json={
+        "full_name": "Nhân viên mới",
+        "email": email,
+        "password": "password123"
+    })
+    assert register_resp.status_code == 200
+    staff_login = client.post("/api/auth/login", json={"email": email, "password": "password123"})
+    staff_headers = {"Authorization": f"Bearer {staff_login.json()['access_token']}"}
+
+    assert client.get("/api/content", headers=staff_headers).json() == []
+    assert client.get(f"/api/content/{post_id}", headers=staff_headers).status_code == 404
 
 def test_marketer_role_endpoints():
     login_resp = client.post("/api/auth/login", json={"email": "marketer@marketing.ai", "password": "marketer123"})

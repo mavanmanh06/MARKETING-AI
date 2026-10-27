@@ -4,21 +4,48 @@ from .models import User, Channel, Campaign, Post, Metric, AILog
 from .auth import hash_password
 
 def seed_database(db: Session):
-    # Check if users already exist
-    if db.query(User).count() > 0:
+    has_users = db.query(User.id).first() is not None
+    default_avatar = "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80"
+
+    admin_user = db.query(User).filter(User.email == "admin@marketing.ai").first()
+    if admin_user is None:
+        admin_user = User(
+            email="admin@marketing.ai",
+            hashed_password=hash_password("admin123"),
+            full_name="Quản trị viên",
+            role="admin",
+            avatar_url=default_avatar,
+            is_active=True
+        )
+        db.add(admin_user)
+
+    manager_user = db.query(User).filter(User.email == "manager@marketing.ai").first()
+    if manager_user is None:
+        manager_user = User(
+            email="manager@marketing.ai",
+            hashed_password=hash_password("manager123"),
+            full_name="Quản lý Marketing",
+            role="manager",
+            avatar_url=default_avatar,
+            is_active=True
+        )
+        db.add(manager_user)
+
+    admin_user.role = "admin"
+    manager_user.role = "manager"
+    db.flush()
+
+    for user in db.query(User).filter(User.role.in_(["admin", "manager"])).all():
+        if user.id not in (admin_user.id, manager_user.id):
+            user.role = "marketer"
+
+    if has_users:
+        db.commit()
         return
 
     print("[Seed Data] Bắt đầu khởi tạo dữ liệu mẫu cho hệ thống...")
 
-    # 1. Seed Users (Quản lý - Manager & Nhân viên - Marketer)
-    admin_user = User(
-        email="admin@marketing.ai",
-        hashed_password=hash_password("admin123"),
-        full_name="Nguyễn Văn Quản Lý (Admin)",
-        role="manager",
-        avatar_url="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80",
-        is_active=True
-    )
+    # 1. Seed Users (Quản trị viên, Quản lý và Nhân viên)
     marketer_user = User(
         email="marketer@marketing.ai",
         hashed_password=hash_password("marketer123"),
@@ -27,9 +54,10 @@ def seed_database(db: Session):
         avatar_url="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop&q=80",
         is_active=True
     )
-    db.add_all([admin_user, marketer_user])
+    db.add(marketer_user)
     db.commit()
     db.refresh(admin_user)
+    db.refresh(manager_user)
     db.refresh(marketer_user)
 
     # 2. Seed Channels

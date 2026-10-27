@@ -10,7 +10,7 @@ from ..schemas import (
     AIInsightRequest, AIInsightResponse
 )
 from ..ai_service import AIMarketingService
-from ..auth import get_current_user
+from ..auth import get_current_user, is_management_role
 
 router = APIRouter(prefix="/api/ai", tags=["AI Marketing Assistant"])
 
@@ -158,7 +158,10 @@ def get_ai_logs(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
-    logs = db.query(AILog).order_by(AILog.created_at.desc()).limit(20).all()
+    query = db.query(AILog)
+    if not is_management_role(current_user):
+        query = query.filter(AILog.user_id == current_user.id)
+    logs = query.order_by(AILog.created_at.desc()).limit(20).all()
     return [
         {
             "id": l.id,

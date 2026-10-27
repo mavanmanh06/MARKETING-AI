@@ -64,5 +64,8 @@ def require_role(allowed_roles: List[str]):
         return current_user
     return role_checker
 
-require_manager = require_role(["manager"])
-require_any_user = require_role(["manager", "marketer"])
+def is_management_role(user: User) -> bool:
+    return user.role in ("admin", "manager")
+
+require_manager = require_role(["admin", "manager"])
+require_any_user = require_role(["admin", "manager", "marketer"])
