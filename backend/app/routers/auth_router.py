@@ -2,9 +2,9 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from sqlalchemy import func
 from ..database import get_db
-from ..models import User, Post, Campaign
+from ..models import User, Post, Campaign, AILog, LoginLog
 from ..schemas import UserLogin, UserCreate, Token, UserResponse
-from ..auth import verify_password, hash_password, create_access_token, get_current_user, require_manager
+from ..auth import verify_password, hash_password, create_access_token, get_current_user, require_manager, require_admin
 
 router = APIRouter(prefix="/api/auth", tags=["Authentication"])
 
@@ -92,3 +92,53 @@ def get_team_stats(db: Session = Depends(get_db), current_user: User = Depends(r
             "pass_rate": pass_rate
         })
     return result
+
+@router.delete("/users/{user_id}")
+def delete_user(
+    user_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_admin)  # BẢO VỆ CHẶT CHẼ: CHỈ ADMIN MỚI CÓ QUYỀN XÓA
+):
+    """
+    Xóa thành viên khỏi hệ thống (Chỉ dành riêng cho Quản trị viên - Admin).
+    Quản lý và Nhân viên không có quyền xóa.
+    """
+    target_user = db.query(User).filter(User.id == user_id).first()
+    if not target_user:
+        raise HTTPException(status_code=404, detail="Không tìm thấy thành viên này")
+
+    # Không thể tự xóa chính mình
+    if target_user.id == current_user.id:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Không thể tự xóa chính tài khoản Quản trị viên bạn đang đăng nhập"
+        )
+
+    # Không thể xóa tài khoản admin gốc
+    if target_user.email == "admin@marketing.ai":
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Không thể xóa tài khoản Quản trị viên gốc của hệ thống"
+        )
+
+    # 1. Xóa các log AI của thành viên này
+    db.query(AILog).filter(AILog.user_id == user_id).delete()
+
+    # 2. Xóa các login log của thành viên này
+    db.query(LoginLog).filter(LoginLog.user_id == user_id).delete()
+
+    # 3. Gỡ liên kết người duyệt (reviewer) trên các bài viết
+    db.query(Post).filter(Post.reviewer_id == user_id).update({"reviewer_id": None})
+
+    # 4. Xóa các bài viết do thành viên này tạo
+    db.query(Post).filter(Post.author_id == user_id).delete()
+
+    # 5. Chuyển giao các chiến dịch do thành viên này tạo về cho Admin hiện tại quản trị
+    db.query(Campaign).filter(Campaign.created_by_id == user_id).update({"created_by_id": current_user.id})
+
+    # 6. Xóa người dùng
+    user_name = target_user.full_name
+    db.delete(target_user)
+    db.commit()
+
+    return {"message": f"Đã xóa thành viên '{user_name}' thành công", "id": user_id}

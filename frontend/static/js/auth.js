@@ -4,6 +4,10 @@ function isManagementRole(role) {
     return role === "admin" || role === "manager";
 }
 
+function isAdminRole(role) {
+    return role === "admin";
+}
+
 function getRoleName(role) {
     if (role === "admin") return "Quản trị viên (Admin)";
     if (role === "manager") return "Quản lý (Manager)";
@@ -84,9 +88,10 @@ function updateUserInfoUI(user) {
     if (!user) return;
     
     const isManager = isManagementRole(user.role);
+    const isAdmin = user.role === "admin";
 
     // 1. Update Body Theme Class
-    document.body.className = isManager ? "role-manager" : "role-marketer";
+    document.body.className = isAdmin ? "role-manager role-admin" : isManager ? "role-manager" : "role-marketer";
 
     // 2. Switch Sidebar Navigation Suites
     const managerNav = document.getElementById("nav-manager-suite");
@@ -104,25 +109,27 @@ function updateUserInfoUI(user) {
     const sidebarAvatar = document.getElementById("user-avatar");
     
     if (sidebarIndicator) {
-        sidebarIndicator.className = `sidebar-role-indicator ${isManager ? "indicator-manager" : "indicator-marketer"}`;
+        sidebarIndicator.className = `sidebar-role-indicator ${isAdmin ? "indicator-admin" : isManager ? "indicator-manager" : "indicator-marketer"}`;
     }
     if (sidebarRoleText) {
-        sidebarRoleText.textContent = isManager ? "CHẾ ĐỘ QUẢN LÝ (DIRECTOR)" : "CHẾ ĐỘ NHÂN VIÊN (CREATIVE)";
+        sidebarRoleText.textContent = isAdmin ? "CHẾ ĐỘ QUẢN TRỊ VIÊN (ADMIN)" : isManager ? "CHẾ ĐỘ QUẢN LÝ (DIRECTOR)" : "CHẾ ĐỘ NHÂN VIÊN (CREATIVE)";
     }
     if (sidebarName) sidebarName.textContent = user.full_name;
     if (sidebarRole) {
-        sidebarRole.textContent = user.role === "admin" ? "🛡️ ADMIN" : isManager ? "🛡️ QUẢN LÝ" : "⚡ MARKETER";
-        sidebarRole.className = `user-role-badge ${isManager ? "manager-badge" : "marketer-badge"}`;
+        sidebarRole.textContent = isAdmin ? "🛡️ ADMIN" : isManager ? "🛡️ QUẢN LÝ" : "⚡ MARKETER";
+        sidebarRole.className = `user-role-badge ${isAdmin ? "admin-badge" : isManager ? "manager-badge" : "marketer-badge"}`;
     }
     if (sidebarAvatar && user.avatar_url) sidebarAvatar.src = user.avatar_url;
 
     // 4. Header Role Banner
     const headerBanner = document.getElementById("header-role-banner");
     if (headerBanner) {
-        if (isManager) {
+        if (isAdmin) {
+            headerBanner.className = "role-pill-banner banner-manager banner-admin";
+            headerBanner.innerHTML = `<i data-lucide="shield-alert"></i> <span>Giao diện Quản trị Cấp cao (Admin Mode - Giám sát Toàn quyền)</span>`;
+        } else if (isManager) {
             headerBanner.className = "role-pill-banner banner-manager";
-            const roleName = user.role === "admin" ? "Admin" : "Manager";
-            headerBanner.innerHTML = `<i data-lucide="shield-check"></i> <span>Giao diện Quản trị (${roleName} Mode)</span>`;
+            headerBanner.innerHTML = `<i data-lucide="shield-check"></i> <span>Giao diện Quản lý Marketing (Manager Mode)</span>`;
         } else {
             headerBanner.className = "role-pill-banner banner-marketer";
             headerBanner.innerHTML = `<i data-lucide="sparkles"></i> <span>Không gian Tác nghiệp Sáng tạo (Marketer Mode)</span>`;
@@ -132,7 +139,19 @@ function updateUserInfoUI(user) {
     // 5. Header Action Buttons
     const headerActions = document.getElementById("header-actions-container");
     if (headerActions) {
-        if (isManager) {
+        if (isAdmin) {
+            headerActions.innerHTML = `
+                <button class="btn btn-outline" onclick="switchView('admin-ai-logs')">
+                    <i data-lucide="shield-alert"></i> Giám sát Nhật ký AI
+                </button>
+                <button class="btn btn-outline" onclick="switchView('approval-center')">
+                    <i data-lucide="shield-check"></i> Phê duyệt bài
+                </button>
+                <button class="btn btn-primary" onclick="openCreateCampaignModal()" id="btn-header-create-campaign">
+                    <i data-lucide="plus"></i> Tạo chiến dịch mới
+                </button>
+            `;
+        } else if (isManager) {
             headerActions.innerHTML = `
                 <button class="btn btn-outline" onclick="switchView('approval-center')">
                     <i data-lucide="shield-check"></i> Phê duyệt bài
@@ -167,17 +186,25 @@ function updateUserInfoUI(user) {
     if (settingsEmail) settingsEmail.textContent = user.email;
     if (settingsRoleTag) {
         settingsRoleTag.textContent = getRoleName(user.role);
-        settingsRoleTag.className = `role-tag ${isManager ? "manager-badge" : "marketer-badge"}`;
+        settingsRoleTag.className = `role-tag ${isAdmin ? "admin-badge" : isManager ? "manager-badge" : "marketer-badge"}`;
     }
     if (settingsAvatar && user.avatar_url) settingsAvatar.src = user.avatar_url;
 
     // 8. Role-based elements visibility
+    document.querySelectorAll(".admin-only").forEach(el => {
+        el.style.display = isAdmin ? "" : "none";
+    });
     document.querySelectorAll(".manager-only").forEach(el => {
         el.style.display = isManager ? "" : "none";
     });
     document.querySelectorAll(".marketer-only").forEach(el => {
         el.style.display = !isManager ? "" : "none";
     });
+
+    // 9. Cập nhật số lượng log AI trên badge nếu là Admin
+    if (isAdmin && typeof updateAdminAILogsBadge === "function") {
+        updateAdminAILogsBadge();
+    }
 
     lucide.createIcons();
 }

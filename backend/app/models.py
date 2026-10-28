@@ -124,12 +124,14 @@ class AILog(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
-    action_type = Column(String(50), nullable=False)  # idea_generation, content_draft, performance_summary
+    campaign_id = Column(Integer, ForeignKey("campaigns.id"), nullable=True)
+    action_type = Column(String(50), nullable=False)  # campaign_generation, idea_generation, content_draft, performance_summary
     prompt = Column(Text, nullable=False)
     response_text = Column(Text, nullable=False)
     created_at = Column(DateTime, default=datetime.utcnow)
 
     user = relationship("User", back_populates="ai_logs")
+    campaign = relationship("Campaign")
 
 
 class LoginLog(Base):

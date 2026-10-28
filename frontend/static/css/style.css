@@ -2285,3 +2285,139 @@ body.role-marketer {
     object-fit: cover;
 }
 
+
+/* ==========================================================================
+   ADMIN AI LOGS SUPERVISION & MONITORING STYLES
+   ========================================================================== */
+.admin-badge {
+    background: linear-gradient(135deg, rgba(239, 68, 68, 0.25), rgba(168, 85, 247, 0.25)) !important;
+    color: #f87171 !important;
+    border: 1px solid rgba(239, 68, 68, 0.4) !important;
+    font-weight: 700;
+}
+
+.banner-admin {
+    background: rgba(239, 68, 68, 0.15) !important;
+    border-color: rgba(239, 68, 68, 0.35) !important;
+    color: #fca5a5 !important;
+}
+
+.indicator-admin {
+    background: rgba(239, 68, 68, 0.15) !important;
+    border: 1px solid rgba(239, 68, 68, 0.3) !important;
+    color: #fca5a5 !important;
+}
+
+.indicator-admin .indicator-dot {
+    background-color: #ef4444 !important;
+    box-shadow: 0 0 10px #ef4444 !important;
+}
+
+.nav-admin-highlight {
+    background: linear-gradient(90deg, rgba(239, 68, 68, 0.12), rgba(147, 51, 234, 0.12)) !important;
+    border-left: 3px solid #ef4444 !important;
+}
+
+.nav-admin-highlight:hover {
+    background: linear-gradient(90deg, rgba(239, 68, 68, 0.2), rgba(147, 51, 234, 0.2)) !important;
+}
+
+.admin-ai-hero {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1.5rem;
+    padding: 2rem;
+    margin-bottom: 1.5rem;
+    background: radial-gradient(circle at top right, rgba(147, 51, 234, 0.25), rgba(15, 23, 42, 0.8) 70%), #1e293b;
+    border: 1px solid rgba(239, 68, 68, 0.25);
+    border-radius: var(--radius-lg);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+}
+
+.admin-badge-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.35rem 0.85rem;
+    background: rgba(239, 68, 68, 0.2);
+    border: 1px solid rgba(239, 68, 68, 0.4);
+    color: #fca5a5;
+    border-radius: 9999px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    margin-bottom: 0.75rem;
+}
+
+.admin-ai-hero-content h2 {
+    font-size: 1.7rem;
+    margin-bottom: 0.4rem;
+}
+
+.admin-ai-hero-content p {
+    color: var(--text-secondary);
+    font-size: 0.95rem;
+    max-width: 650px;
+}
+
+.admin-ai-hero-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    justify-content: flex-end;
+}
+
+.admin-ai-filter-bar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    padding: 1.25rem;
+    background: rgba(15, 23, 42, 0.6);
+    border-bottom: 1px solid var(--border-color);
+}
+
+.admin-ai-filter-bar .filter-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+}
+
+.admin-ai-filter-bar label {
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+}
+
+
+/* ADMIN-ONLY DISPLAY CONTROLS */
+body:not(.role-admin) .admin-only {
+    display: none !important;
+}
+
+body.role-admin .admin-only {
+    display: block !important;
+}
+
+body.role-admin button.ai-tab.admin-only {
+    display: flex !important;
+}
+
+body.role-admin #view-admin-ai-logs.admin-only.page-view {
+    display: none !important;
+}
+
+body.role-admin #view-admin-ai-logs.admin-only.page-view.active {
+    display: block !important;
+}
+
+body.role-admin #ai-tab-logs.admin-only.ai-subview {
+    display: none !important;
+}
+
+body.role-admin #ai-tab-logs.admin-only.ai-subview.active {
+    display: block !important;
+}

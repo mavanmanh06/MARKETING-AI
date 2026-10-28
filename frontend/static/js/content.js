@@ -414,7 +414,7 @@ function renderMyPerformance() {
 }
 
 
-// ================= 4. TEAM MANAGEMENT (FOR MANAGER) =================
+// ================= 4. TEAM MANAGEMENT (FOR MANAGER & ADMIN) =================
 async function loadTeamManagement() {
     const tbody = document.getElementById("tbody-team-members");
     if (!tbody) return;
@@ -422,7 +422,7 @@ async function loadTeamManagement() {
     try {
         const team = await api.get("/api/auth/team-stats");
         if (!team || team.length === 0) {
-            tbody.innerHTML = `<tr><td colspan="8" class="text-center text-muted">Chưa có thành viên nào</td></tr>`;
+            tbody.innerHTML = `<tr><td colspan="9" class="text-center text-muted">Chưa có thành viên nào</td></tr>`;
             return;
         }
 
@@ -438,6 +438,9 @@ async function loadTeamManagement() {
         if (elTotalPosts) elTotalPosts.textContent = totalPosts;
         if (elAvgPass) elAvgPass.textContent = `${avgPassRate}%`;
 
+        const currentUser = api.getUser();
+        const isAdmin = currentUser && currentUser.role === "admin";
+
         tbody.innerHTML = team.map(u => {
             const roleBadge = u.role === "admin"
                 ? `<span class="user-role-badge manager-badge">🛡️ Quản trị viên</span>`
@@ -445,6 +448,25 @@ async function loadTeamManagement() {
                     ? `<span class="user-role-badge manager-badge">🛡️ Quản lý</span>`
                     : `<span class="user-role-badge marketer-badge">⚡ Nhân viên</span>`;
             
+            // Xử lý cột thao tác: Chỉ Quản trị viên (Admin) mới có quyền xóa thành viên khỏi nhóm
+            let actionHtml = "";
+            if (isAdmin) {
+                if (currentUser && u.id === currentUser.id) {
+                    actionHtml = `<span class="badge-tag text-muted" style="font-size: 0.75rem;">(Chính bạn)</span>`;
+                } else if (u.email === "admin@marketing.ai") {
+                    actionHtml = `<span class="badge-tag text-muted" style="font-size: 0.75rem;">(Admin gốc)</span>`;
+                } else {
+                    const safeName = (u.full_name || "Thành viên").replace(/'/g, "\'");
+                    actionHtml = `
+                        <button class="btn btn-outline btn-sm text-danger" style="padding: 4px 10px; border-color: rgba(239, 68, 68, 0.4); font-size: 0.8rem; display: inline-flex; align-items: center; gap: 4px;" onclick="deleteTeamMember(${u.id}, '${safeName}')">
+                            <i data-lucide="trash-2" style="width: 14px; height: 14px;"></i> Xóa
+                        </button>
+                    `;
+                }
+            } else {
+                actionHtml = `<span class="text-muted" style="font-size: 0.75rem;">(Chỉ xem)</span>`;
+            }
+
             return `
                 <tr>
                     <td>
@@ -463,6 +485,7 @@ async function loadTeamManagement() {
                     <td><span class="badge-ai-flag">${u.ai_generated_posts} bài</span></td>
                     <td><strong class="text-success">${u.pass_rate}%</strong></td>
                     <td><span class="badge-tag" style="background: rgba(16, 185, 129, 0.15); color: #10b981;">Đang hoạt động</span></td>
+                    <td>${actionHtml}</td>
                 </tr>
             `;
         }).join("");
@@ -470,6 +493,26 @@ async function loadTeamManagement() {
         lucide.createIcons();
     } catch (err) {
         console.error("Lỗi tải thông tin Team Management:", err);
+    }
+}
+
+async function deleteTeamMember(userId, fullName) {
+    const user = api.getUser();
+    if (!user || user.role !== "admin") {
+        showToast("Chỉ Quản trị viên (Admin) mới có quyền xóa thành viên khỏi hệ thống!", "error");
+        return;
+    }
+
+    if (!confirm(`Bạn có chắc chắn muốn xóa thành viên "${fullName}" khỏi hệ thống?\n\nLưu ý: Các bài viết của thành viên sẽ được dọn dẹp và các chiến dịch sẽ được bàn giao về cho Quản trị viên quản lý.`)) {
+        return;
+    }
+
+    try {
+        const res = await api.delete(`/api/auth/users/${userId}`);
+        showToast(res.message || `Đã xóa thành viên "${fullName}" thành công!`, "success");
+        await loadTeamManagement();
+    } catch (err) {
+        showToast(err.message || "Lỗi xóa thành viên", "error");
     }
 }
 

@@ -75,6 +75,45 @@ class AIMarketingService:
             return data["choices"][0]["message"]["content"]
 
     @classmethod
+    def generate_campaign_plan(
+        cls,
+        product_or_service: str,
+        objective: str = "Brand Awareness & Sales Conversion",
+        target_audience: str = "",
+        budget: float = 50000000.0,
+        duration_days: int = 30,
+        preferred_channel: str = "Facebook"
+    ) -> Dict[str, Any]:
+        user_prompt = (
+            f"Lập kế hoạch chiến dịch Marketing chi tiết cho: {product_or_service}. "
+            f"Mục tiêu: {objective}. "
+            f"Tệp khách hàng: {target_audience or 'Khách hàng quan tâm và có nhu cầu'}. "
+            f"Ngân sách: {budget:,.0f} VNĐ. Thời gian: {duration_days} ngày. "
+            f"Kênh truyền thông ưu tiên: {preferred_channel}."
+        )
+
+        name = f"Chiến dịch {product_or_service} - Tăng trưởng 2026"
+        audience = target_audience or f"Tệp người tiêu dùng 18-45 tuổi quan tâm đến {product_or_service}, sinh sống tại các khu vực đô thị."
+        desc = (
+            f"Chiến lược triển khai chiến dịch '{name}':\n"
+            f"• Giai đoạn 1 (Tuần 1): Nhận diện thương hiệu & Thu hút sự chú ý (Teaser & Brand Awareness) trên {preferred_channel}.\n"
+            f"• Giai đoạn 2 (Tuần 2-3): Thúc đẩy tương tác, cung cấp thông tin sản phẩm và minigame kích cầu (Engagement & Lead Nurturing).\n"
+            f"• Giai đoạn 3 (Tuần 4): Chốt đơn hàng với ưu đãi giới hạn thời gian (Direct Sales & Conversion)."
+        )
+        channels = [preferred_channel, "TikTok", "Google Ads"] if preferred_channel not in ["TikTok", "Google Ads"] else [preferred_channel, "Facebook", "Instagram"]
+
+        return {
+            "name": name,
+            "objective": objective,
+            "target_audience": audience,
+            "budget": float(budget),
+            "duration_days": duration_days,
+            "description": desc,
+            "suggested_channels": channels,
+            "raw_prompt": f"System: {SYSTEM_MARKETING_PROMPT}\nUser: {user_prompt}"
+        }
+
+    @classmethod
     def generate_ideas(
         cls, 
         campaign_name: str, 

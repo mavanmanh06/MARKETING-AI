@@ -3,6 +3,7 @@ from fastapi import FastAPI, Request
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse, JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
+from sqlalchemy import text
 from .config import settings
 from .database import engine, Base, SessionLocal
 from .seed_data import seed_database
@@ -10,6 +11,16 @@ from .routers import auth_router, campaign_router, content_router, metrics_route
 
 # Create DB tables
 Base.metadata.create_all(bind=engine)
+
+# Auto migrate campaign_id into ai_logs if SQLite table already exists without it
+with engine.connect() as conn:
+    try:
+        cols = [r[1] for r in conn.execute(text("PRAGMA table_info(ai_logs)")).fetchall()]
+        if cols and "campaign_id" not in cols:
+            conn.execute(text("ALTER TABLE ai_logs ADD COLUMN campaign_id INTEGER REFERENCES campaigns(id)"))
+            conn.commit()
+    except Exception as e:
+        print(f"[Migration] Note: {e}")
 
 # Auto seed database with initial demo data
 db = SessionLocal()

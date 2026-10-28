@@ -78,7 +78,7 @@
                 <!-- SIDEBAR NAV: DYNAMICALLY SWITCHED BASED ON USER ROLE -->
                 <nav class="sidebar-nav">
                     
-                    <!-- 1. MANAGER SUITE NAVIGATION -->
+                    <!-- 1. MANAGER / ADMIN SUITE NAVIGATION -->
                     <div id="nav-manager-suite" class="role-nav-group">
                         <div class="nav-section-title">QUẢN TRỊ & ĐIỀU HÀNH</div>
                         <a href="#dashboard" class="nav-item active" onclick="switchView('dashboard', event)">
@@ -113,13 +113,25 @@
                             <span>Trợ lý AI Chiến lược</span>
                             <span class="badge-ai">AI Pro</span>
                         </a>
+
+                        <!-- ADMIN ONLY: QUẢN LÝ NHẬT KÝ AI & GIÁM SÁT -->
+                        <div class="admin-only" style="display: none;">
+                            <div class="nav-section-title">GIÁM SÁT HỆ THỐNG (ADMIN)</div>
+                            <a href="#admin-ai-logs" class="nav-item nav-admin-highlight" onclick="switchView('admin-ai-logs', event)">
+                                <i data-lucide="shield-alert"></i>
+                                <span>Quản lý Nhật ký AI</span>
+                                <span class="badge-pill badge-primary" id="badge-admin-ai-count">0</span>
+                            </a>
+                        </div>
+
+                        <div class="nav-section-title">HỆ THỐNG</div>
                         <a href="#settings" class="nav-item" onclick="switchView('settings', event)">
                             <i data-lucide="settings"></i>
-                            <span>Cài đặt & Hệ thống</span>
+                            <span>Cài đặt & Tài khoản</span>
                         </a>
                     </div>
 
-                    <!-- 2. MARKETER SUITE NAVIGATION -->
+                    <!-- 2. MARKETER SUITE NAVIGATION (NHÂN VIÊN) -->
                     <div id="nav-marketer-suite" class="role-nav-group" style="display: none;">
                         <div class="nav-section-title">KHÔNG GIAN TÁC NGHIỆP</div>
                         <a href="#marketer-workspace" class="nav-item active" onclick="switchView('marketer-workspace', event)">
@@ -161,8 +173,8 @@
                     <div class="user-avatar-box">
                         <img id="user-avatar" src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100" alt="Avatar" class="user-img">
                         <div class="user-info">
-                            <span class="user-name" id="sidebar-user-name">Nguyễn Văn Quản Lý</span>
-                            <span class="user-role-badge manager-badge" id="sidebar-user-role">🛡️ QUẢN LÝ</span>
+                            <span class="user-name" id="sidebar-user-name">Quản trị viên</span>
+                            <span class="user-role-badge manager-badge" id="sidebar-user-role">🛡️ ADMIN</span>
                         </div>
                     </div>
                     <button class="btn-icon-logout" title="Đăng xuất" onclick="handleLogout()">
@@ -557,6 +569,7 @@
                                             <th>Ứng dụng AI</th>
                                             <th>Tỷ lệ Đạt chuẩn</th>
                                             <th>Trạng thái</th>
+                                            <th>Thao tác</th>
                                         </tr>
                                     </thead>
                                     <tbody id="tbody-team-members">
@@ -749,8 +762,9 @@
                                 <button class="ai-tab" onclick="switchAITab('insights', event)">
                                     <i data-lucide="trending-up"></i> 3. Phân tích & Gợi ý Tối ưu
                                 </button>
-                                <button class="ai-tab" onclick="switchAITab('logs', event)">
-                                    <i data-lucide="scroll-text"></i> 4. Nhật ký AI SDLC (Prompt Log)
+                                <!-- TAB 4: CHỈ HIỂN THỊ KHI LÀ ADMIN (NHÂN VIÊN VÀ QUẢN LÝ KHÔNG CÓ) -->
+                                <button class="ai-tab admin-only" id="ai-nav-tab-logs" onclick="switchAITab('logs', event)">
+                                    <i data-lucide="scroll-text"></i> 4. Quản lý Nhật ký AI (Admin)
                                 </button>
                             </div>
 
@@ -894,23 +908,43 @@
                                 </div>
                             </div>
 
-                            <!-- AI TAB 4: SDLC PROMPT LOGS -->
-                            <div id="ai-tab-logs" class="ai-subview">
-                                <div class="table-responsive">
-                                    <table class="table">
-                                        <thead>
-                                            <tr>
-                                                <th>Thời gian</th>
-                                                <th>Người thực hiện</th>
-                                                <th>Hành động AI</th>
-                                                <th>Prompt đã dùng</th>
-                                                <th>Phản hồi tóm tắt</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody id="tbody-ai-logs">
-                                            <!-- Injected -->
-                                        </tbody>
-                                    </table>
+                            <!-- AI TAB 4: SDLC PROMPT LOGS (ADMIN ONLY) -->
+                            <div id="ai-tab-logs" class="ai-subview admin-only">
+                                <div class="card" style="margin-bottom: 1.5rem; background: rgba(15, 23, 42, 0.4); border: 1px solid var(--border-color); border-radius: 12px; padding: 1.25rem;">
+                                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem; flex-wrap: wrap; gap: 1rem;">
+                                        <div>
+                                            <h3 style="margin: 0; font-size: 1.2rem; display: flex; align-items: center; gap: 8px;">
+                                                <i data-lucide="shield-alert" class="text-primary"></i> Nhật Ký Tác Vụ AI (Admin Audit Prompt Logs)
+                                            </h3>
+                                            <p style="margin: 4px 0 0; color: var(--text-secondary); font-size: 0.85rem;">
+                                                Giám sát tất cả các lần thành viên sử dụng AI để tạo ý tưởng, viết bài và sinh chiến dịch.
+                                            </p>
+                                        </div>
+                                        <div style="display: flex; gap: 0.5rem;">
+                                            <button type="button" class="btn btn-outline btn-sm" onclick="loadAILogs()">
+                                                <i data-lucide="refresh-cw"></i> Làm mới
+                                            </button>
+                                            <button type="button" class="btn btn-primary btn-sm" onclick="switchView('admin-ai-logs')">
+                                                <i data-lucide="external-link"></i> Mở Trung Tâm Giám Sát Chi Tiết
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <div class="table-responsive">
+                                        <table class="table table-hover">
+                                            <thead>
+                                                <tr>
+                                                    <th>Thời gian</th>
+                                                    <th>Người thực hiện</th>
+                                                    <th>Hành động AI</th>
+                                                    <th>Prompt đã gửi</th>
+                                                    <th>Phản hồi tóm tắt</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody id="tbody-ai-logs">
+                                                <!-- Injected -->
+                                            </tbody>
+                                        </table>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -971,9 +1005,9 @@
                                 <div class="user-profile-view">
                                     <img id="settings-avatar" src="" alt="Avatar" class="avatar-large">
                                     <div class="profile-details">
-                                        <h4 id="settings-fullname">Nguyễn Văn Quản Lý</h4>
+                                        <h4 id="settings-fullname">Quản trị viên</h4>
                                         <p id="settings-email">admin@marketing.ai</p>
-                                        <span class="role-tag" id="settings-role-tag">Quản lý (Manager)</span>
+                                        <span class="role-tag" id="settings-role-tag">Quản trị viên (Admin)</span>
                                     </div>
                                 </div>
 
@@ -1015,6 +1049,163 @@
                         </div>
                     </section>
 
+
+                    <!-- ================= VIEW 11: ADMIN AI LOGS SUPERVISION (CHỈ DÀNH CHO ADMIN) ================= -->
+                    <section id="view-admin-ai-logs" class="page-view admin-only" style="display: none;">
+                        <!-- ADMIN BANNER -->
+                        <div class="admin-ai-hero card">
+                            <div class="admin-ai-hero-content">
+                                <div class="admin-badge-pill">
+                                    <i data-lucide="shield-alert"></i> QUẢN TRỊ CẤP CAO (ADMIN ONLY)
+                                </div>
+                                <h2>Trung Tâm Giám Sát & Quản Lý Nhật Ký AI</h2>
+                                <p>Theo dõi và giám sát xem những ai trong hệ thống đã sử dụng Trí Tuệ Nhân Tạo (AI) để tạo chiến dịch, lập kế hoạch, sinh ý tưởng và soạn thảo bài viết.</p>
+                            </div>
+                            <div class="admin-ai-hero-actions">
+                                <button class="btn btn-outline" onclick="loadAdminAILogs(); loadAdminAIStats();">
+                                    <i data-lucide="refresh-cw"></i> Làm mới dữ liệu
+                                </button>
+                                <button class="btn btn-outline" onclick="exportAILogs('csv')">
+                                    <i data-lucide="file-spreadsheet"></i> Xuất CSV
+                                </button>
+                                <button class="btn btn-outline" onclick="exportAILogs('json')">
+                                    <i data-lucide="download"></i> Xuất JSON
+                                </button>
+                                <button class="btn btn-danger" onclick="clearAllAILogs()">
+                                    <i data-lucide="trash-2"></i> Xóa tất cả log
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- ADMIN AI KPI CARDS -->
+                        <div class="kpi-grid">
+                            <div class="kpi-card kpi-executive">
+                                <div class="kpi-icon-wrapper kpi-purple"><i data-lucide="sparkles"></i></div>
+                                <div class="kpi-info">
+                                    <span class="kpi-label">Tổng lượt gọi AI toàn cty</span>
+                                    <h3 class="kpi-value text-primary" id="admin-ai-stat-total">0</h3>
+                                    <span class="kpi-subtext" id="admin-ai-stat-users-count">0 thành viên đã dùng</span>
+                                </div>
+                            </div>
+
+                            <div class="kpi-card kpi-executive">
+                                <div class="kpi-icon-wrapper kpi-blue"><i data-lucide="target"></i></div>
+                                <div class="kpi-info">
+                                    <span class="kpi-label">Dùng AI Tạo Chiến Dịch / Ý Tưởng</span>
+                                    <h3 class="kpi-value text-info" id="admin-ai-stat-campaigns">0</h3>
+                                    <span class="kpi-subtext">Lập kế hoạch & sinh ý tưởng</span>
+                                </div>
+                            </div>
+
+                            <div class="kpi-card kpi-executive">
+                                <div class="kpi-icon-wrapper kpi-green"><i data-lucide="feather"></i></div>
+                                <div class="kpi-info">
+                                    <span class="kpi-label">Dùng AI Soạn Nội Dung Post</span>
+                                    <h3 class="kpi-value text-success" id="admin-ai-stat-content">0</h3>
+                                    <span class="kpi-subtext">Bài viết, caption, kịch bản</span>
+                                </div>
+                            </div>
+
+                            <div class="kpi-card kpi-executive">
+                                <div class="kpi-icon-wrapper kpi-amber"><i data-lucide="brain"></i></div>
+                                <div class="kpi-info">
+                                    <span class="kpi-label">Dùng AI Phân Tích Hiệu Suất</span>
+                                    <h3 class="kpi-value text-warning" id="admin-ai-stat-insights">0</h3>
+                                    <span class="kpi-subtext">Đánh giá SWOT & Tối ưu ngân sách</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- USER AI ACTIVITY SUMMARY TABLE (GIÁM SÁT NGƯỜI DÙNG) -->
+                        <div class="card" style="margin-bottom: 1.5rem;">
+                            <div class="card-header">
+                                <div class="card-title-box">
+                                    <i data-lucide="users" class="text-primary"></i>
+                                    <h3>Thành Viên Sử Dụng AI (Giám Sát Tần Suất & Mục Đích)</h3>
+                                </div>
+                                <span class="card-badge">Nhấp vào dòng thành viên để lọc nhật ký của người đó</span>
+                            </div>
+                            <div class="table-responsive">
+                                <table class="table table-hover">
+                                    <thead>
+                                        <tr>
+                                            <th>Thành viên</th>
+                                            <th>Vai trò</th>
+                                            <th>Tổng lượt gọi AI</th>
+                                            <th>Tạo Chiến dịch / Ý tưởng</th>
+                                            <th>Soạn Nội dung</th>
+                                            <th>Phân tích AI</th>
+                                            <th>Lần dùng gần nhất</th>
+                                            <th>Hành động</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="tbody-admin-ai-users">
+                                        <!-- Injected dynamically -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        <!-- DETAILED LOGS TABLE & FILTERS -->
+                        <div class="card">
+                            <div class="card-header">
+                                <div class="card-title-box">
+                                    <i data-lucide="list-filter"></i>
+                                    <h3>Chi Tiết Nhật Ký Tác Vụ AI (Audit Prompt Logs)</h3>
+                                </div>
+                                <span id="admin-ai-logs-badge-count" class="badge-tag">0 bản ghi</span>
+                            </div>
+
+                            <!-- Filter toolbar -->
+                            <div class="admin-ai-filter-bar">
+                                <div class="filter-group col-3">
+                                    <label><i data-lucide="user"></i> Lọc theo Thành viên:</label>
+                                    <select id="admin-ai-filter-user" class="form-control" onchange="filterAdminAILogs()">
+                                        <option value="">-- Tất cả thành viên --</option>
+                                    </select>
+                                </div>
+                                <div class="filter-group col-3">
+                                    <label><i data-lucide="filter"></i> Loại Hành Động AI:</label>
+                                    <select id="admin-ai-filter-action" class="form-control" onchange="filterAdminAILogs()">
+                                        <option value="all">Tất cả hành động</option>
+                                        <option value="campaign_generation">🎯 Tạo Chiến Dịch bằng AI</option>
+                                        <option value="idea_generation">💡 Sinh Ý Tưởng Chiến Dịch</option>
+                                        <option value="content_draft">✍️ Soạn Thảo Nội Dung / Bài Viết</option>
+                                        <option value="performance_summary">📊 Phân Tích & Gợi Ý Hiệu Suất</option>
+                                    </select>
+                                </div>
+                                <div class="filter-group col-4">
+                                    <label><i data-lucide="search"></i> Tìm kiếm Prompt / Kết quả:</label>
+                                    <input type="text" id="admin-ai-filter-search" class="form-control" placeholder="Nhập từ khóa tìm kiếm prompt..." oninput="handleAdminAISearch()">
+                                </div>
+                                <div class="filter-group col-2" style="display: flex; align-items: flex-end;">
+                                    <button class="btn btn-outline btn-block" onclick="resetAdminAIFilters()">
+                                        <i data-lucide="rotate-ccw"></i> Đặt lại
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div class="table-responsive">
+                                <table class="table table-hover">
+                                    <thead>
+                                        <tr>
+                                            <th>Thời gian</th>
+                                            <th>Người thực hiện</th>
+                                            <th>Hành động AI</th>
+                                            <th>Chiến dịch liên quan</th>
+                                            <th>Nội dung Prompt</th>
+                                            <th>Phản hồi AI (Tóm tắt)</th>
+                                            <th>Thao tác</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="tbody-admin-ai-logs">
+                                        <!-- Injected dynamically -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </section>
+
                 </div>
             </main>
         </div>
@@ -1026,7 +1217,12 @@
     <div id="modal-campaign" class="modal-backdrop">
         <div class="modal-dialog">
             <div class="modal-header">
-                <h3 id="modal-campaign-title">Tạo Chiến dịch Marketing Mới</h3>
+                <div style="display: flex; align-items: center; gap: 0.75rem;">
+                    <h3 id="modal-campaign-title">Tạo Chiến dịch Marketing Mới</h3>
+                    <button type="button" class="btn btn-outline btn-sm" onclick="openAIGenerateCampaignModal()" style="color: var(--brand-primary); border-color: rgba(99,102,241,0.4);">
+                        <i data-lucide="sparkles"></i> AI Lập Kế Hoạch
+                    </button>
+                </div>
                 <button type="button" class="btn-close" onclick="closeModal('modal-campaign')"><i data-lucide="x"></i></button>
             </div>
             <form id="form-campaign" onsubmit="handleSaveCampaign(event)">
@@ -1280,6 +1476,103 @@
             </form>
         </div>
     </div>
+
+
+    <!-- MODAL 6: AI LOG DETAIL (CHỈ DÀNH CHO ADMIN) -->
+    <div id="modal-ai-log-detail" class="modal-backdrop">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-header">
+                <h3><i data-lucide="shield-alert" class="text-primary"></i> Chi Tiết Nhật Ký AI Hệ Thống</h3>
+                <button type="button" class="btn-close" onclick="closeModal('modal-ai-log-detail')"><i data-lucide="x"></i></button>
+            </div>
+            <div class="modal-body">
+                <div class="log-meta-panel" style="display: flex; flex-wrap: wrap; gap: 1.5rem; margin-bottom: 1.25rem; padding: 1rem; background: rgba(15, 23, 42, 0.6); border-radius: var(--radius-md); border: 1px solid var(--border-color);">
+                    <div>
+                        <small class="text-muted" style="display: block;">Người thực hiện:</small>
+                        <strong id="log-detail-user">-</strong>
+                    </div>
+                    <div>
+                        <small class="text-muted" style="display: block;">Vai trò:</small>
+                        <span id="log-detail-role" class="badge-tag">-</span>
+                    </div>
+                    <div>
+                        <small class="text-muted" style="display: block;">Loại hành động AI:</small>
+                        <span id="log-detail-action" class="badge-tag">-</span>
+                    </div>
+                    <div>
+                        <small class="text-muted" style="display: block;">Chiến dịch:</small>
+                        <strong id="log-detail-campaign">-</strong>
+                    </div>
+                    <div>
+                        <small class="text-muted" style="display: block;">Thời gian ghi nhận:</small>
+                        <span id="log-detail-time" class="text-muted">-</span>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label><strong>Prompt Đầu Vào (System & User Prompt):</strong></label>
+                    <pre id="log-detail-prompt" style="background: rgba(0,0,0,0.5); border: 1px solid var(--border-color); padding: 1rem; border-radius: var(--radius-sm); color: #94a3b8; font-family: monospace; font-size: 0.85rem; white-space: pre-wrap; max-height: 180px; overflow-y: auto;"></pre>
+                </div>
+
+                <div class="form-group">
+                    <label><strong>Phản Hồi Trả Về Từ AI Engine:</strong></label>
+                    <pre id="log-detail-response" style="background: rgba(15, 23, 42, 0.8); border: 1px solid var(--border-color); padding: 1rem; border-radius: var(--radius-sm); color: #f8fafc; font-family: monospace; font-size: 0.85rem; white-space: pre-wrap; max-height: 250px; overflow-y: auto;"></pre>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline" onclick="closeModal('modal-ai-log-detail')">Đóng</button>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- MODAL 7: AI GENERATE CAMPAIGN WIZARD -->
+    <div id="modal-ai-gen-campaign" class="modal-backdrop">
+        <div class="modal-dialog">
+            <div class="modal-header">
+                <h3><i data-lucide="sparkles" class="text-primary"></i> AI Đề Xuất & Lập Kế Hoạch Chiến Dịch</h3>
+                <button type="button" class="btn-close" onclick="closeModal('modal-ai-gen-campaign')"><i data-lucide="x"></i></button>
+            </div>
+            <form id="form-ai-gen-campaign" onsubmit="handleExecuteAIGenCampaign(event)">
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label>Sản phẩm / Dịch vụ bạn muốn quảng bá: <span class="required">*</span></label>
+                        <input type="text" id="ai-camp-product" class="form-control" required placeholder="VD: Khóa học Tiếng Anh Giao Tiếp Thực Chiến cho người đi làm">
+                    </div>
+                    <div class="form-group">
+                        <label>Mục tiêu chiến lược: <span class="required">*</span></label>
+                        <select id="ai-camp-objective" class="form-control">
+                            <option value="Brand Awareness & Tăng nhận diện thương hiệu">Brand Awareness & Tăng nhận diện thương hiệu</option>
+                            <option value="Lead Generation & Thu thập khách hàng tiềm năng">Lead Generation & Thu thập Leads</option>
+                            <option value="Sales Conversion & Thúc đẩy doanh số mở bán">Sales Conversion & Doanh số</option>
+                            <option value="Event Promotion & Tăng lượt đăng ký tham gia">Event Promotion & Hội thảo</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Tệp khách hàng mục tiêu:</label>
+                        <input type="text" id="ai-camp-audience" class="form-control" placeholder="VD: Dân văn phòng 22-35 tuổi tại Hà Nội và TP.HCM">
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group col-6">
+                            <label>Ngân sách dự tính (VNĐ):</label>
+                            <input type="number" id="ai-camp-budget" class="form-control" value="60000000" step="5000000">
+                        </div>
+                        <div class="form-group col-6">
+                            <label>Thời gian chạy (ngày):</label>
+                            <input type="number" id="ai-camp-duration" class="form-control" value="30" min="7" max="180">
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline" onclick="closeModal('modal-ai-gen-campaign')">Hủy</button>
+                    <button type="submit" class="btn btn-primary" id="btn-submit-ai-gen-camp">
+                        <i data-lucide="wand-2"></i> AI Tạo Kế Hoạch Ngay
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
 
     <!-- TOAST NOTIFICATIONS CONTAINER -->
     <div id="toast-container" class="toast-container"></div>

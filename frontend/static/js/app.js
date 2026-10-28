@@ -5,6 +5,20 @@ function switchView(viewName, e) {
 
     const user = api.getUser();
     const isManager = user && isManagementRole(user.role);
+    const isAdmin = user && user.role === "admin";
+
+    // BẢO VỆ CHẶT CHẼ: CHỈ ADMIN MỚI ĐƯỢC PHÉP TRUY CẬP VÀO QUẢN LÝ NHẬT KÝ AI
+    if (viewName === "admin-ai-logs") {
+        if (!isAdmin) {
+            showToast("Bạn không có quyền truy cập chức năng này. Quản lý Nhật ký AI chỉ dành riêng cho Quản trị viên (Admin)!", "error");
+            if (isManager) {
+                switchView("dashboard");
+            } else {
+                switchView("marketer-workspace");
+            }
+            return;
+        }
+    }
 
     // Update active nav items across both suites
     document.querySelectorAll(".sidebar-nav .nav-item").forEach(item => {
@@ -65,6 +79,10 @@ function switchView(viewName, e) {
             title: isManager ? "Trợ lý AI Phân tích Chiến lược" : "Trợ lý AI Sáng tạo Nội dung", 
             desc: "Sáng tạo ý tưởng viral, viết caption đa kênh và phân tích chuyên sâu" 
         },
+        "admin-ai-logs": { 
+            title: "🛡️ Quản Lý & Giám Sát Nhật Ký AI (Admin AI Supervision Console)", 
+            desc: "Giám sát chi tiết xem những ai đã sử dụng AI để tạo chiến dịch, tạo ý tưởng và soạn thảo nội dung" 
+        },
         "metrics": { 
             title: "Chỉ số & Báo cáo ROI Toàn diện", 
             desc: "Ghi nhận số liệu thực tế, theo dõi chi phí và tỷ suất sinh lời ROI" 
@@ -89,6 +107,10 @@ function switchView(viewName, e) {
     if (viewName === "ai-assistant") {
         loadChannels();
         loadCampaigns();
+    }
+    if (viewName === "admin-ai-logs") {
+        if (typeof loadAdminAIStats === "function") loadAdminAIStats();
+        if (typeof loadAdminAILogs === "function") loadAdminAILogs();
     }
 
     lucide.createIcons();

@@ -233,3 +233,54 @@ class AIInsightResponse(BaseModel):
     recommendations: List[str]
     suggested_budget_allocation: Dict[str, Any]
     generated_at: datetime
+
+class AICampaignGenerateRequest(BaseModel):
+    product_or_service: str
+    objective: str = "Brand Awareness & Sales Conversion"
+    target_audience: Optional[str] = None
+    budget: Optional[float] = 50000000.0
+    duration_days: Optional[int] = 30
+    preferred_channel: Optional[str] = "Facebook"
+
+class AICampaignGenerateResponse(BaseModel):
+    name: str
+    objective: str
+    target_audience: str
+    budget: float
+    duration_days: int
+    description: str
+    suggested_channels: List[str]
+    raw_prompt: str
+
+class AILogResponse(BaseModel):
+    id: int
+    user_id: int
+    user_name: str
+    user_email: str
+    user_role: str
+    user_avatar: Optional[str] = None
+    campaign_id: Optional[int] = None
+    campaign_name: Optional[str] = None
+    action_type: str
+    prompt: str
+    response_text: str
+    created_at: str
+
+class AILogUserStat(BaseModel):
+    user_id: int
+    user_name: str
+    user_email: str
+    user_role: str
+    total_calls: int
+    campaign_calls: int
+    content_calls: int
+    insight_calls: int
+    last_activity: Optional[str] = None
+
+class AILogStatsResponse(BaseModel):
+    total_logs: int
+    total_users_used: int
+    campaign_ai_count: int
+    content_ai_count: int
+    insight_ai_count: int
+    user_stats: List[AILogUserStat]

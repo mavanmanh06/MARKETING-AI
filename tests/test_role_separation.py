@@ -180,3 +180,128 @@ def test_human_in_the_loop_collaboration_cycle():
     approve_res = client.put(f"/api/content/{post_id}/review", json={"action": "approve", "feedback": "Đã sửa tốt, duyệt ngay!"}, headers=admin_headers)
     assert approve_res.status_code == 200
     assert approve_res.json()["status"] == "approved"
+
+
+def test_ai_logs_management_admin_only():
+    # 1. Admin đăng nhập -> truy cập được /api/ai/logs và /api/ai/logs/stats
+    admin_login = client.post("/api/auth/login", json={"email": "admin@marketing.ai", "password": "admin123"})
+    assert admin_login.status_code == 200
+    admin_headers = {"Authorization": f"Bearer {admin_login.json()['access_token']}"}
+
+    logs_res = client.get("/api/ai/logs", headers=admin_headers)
+    assert logs_res.status_code == 200
+    assert isinstance(logs_res.json(), list)
+
+    stats_res = client.get("/api/ai/logs/stats", headers=admin_headers)
+    assert stats_res.status_code == 200
+    assert "total_logs" in stats_res.json()
+    assert "user_stats" in stats_res.json()
+
+    # 2. Manager đăng nhập -> BỊ TỪ CHỐI 403 FORBIDDEN
+    manager_login = client.post("/api/auth/login", json={"email": "manager@marketing.ai", "password": "manager123"})
+    assert manager_login.status_code == 200
+    manager_headers = {"Authorization": f"Bearer {manager_login.json()['access_token']}"}
+
+    mgr_logs_res = client.get("/api/ai/logs", headers=manager_headers)
+    assert mgr_logs_res.status_code == 403
+    mgr_stats_res = client.get("/api/ai/logs/stats", headers=manager_headers)
+    assert mgr_stats_res.status_code == 403
+
+    # 3. Marketer đăng nhập -> BỊ TỪ CHỐI 403 FORBIDDEN
+    marketer_login = client.post("/api/auth/login", json={"email": "marketer@marketing.ai", "password": "marketer123"})
+    assert marketer_login.status_code == 200
+    marketer_headers = {"Authorization": f"Bearer {marketer_login.json()['access_token']}"}
+
+    mkt_logs_res = client.get("/api/ai/logs", headers=marketer_headers)
+    assert mkt_logs_res.status_code == 403
+    mkt_stats_res = client.get("/api/ai/logs/stats", headers=marketer_headers)
+    assert mkt_stats_res.status_code == 403
+
+
+def test_ai_campaign_generation_logged_for_admin_supervision():
+    # Marketer sử dụng AI để tạo chiến dịch
+    marketer_login = client.post("/api/auth/login", json={"email": "marketer@marketing.ai", "password": "marketer123"})
+    marketer_headers = {"Authorization": f"Bearer {marketer_login.json()['access_token']}"}
+
+    camp_res = client.post("/api/ai/generate-campaign", json={
+        "product_or_service": "Bộ sưu tập Tai nghe Gaming Pro",
+        "objective": "Sales Conversion",
+        "budget": 75000000.0,
+        "duration_days": 30
+    }, headers=marketer_headers)
+    assert camp_res.status_code == 200
+    camp_data = camp_res.json()
+    assert "name" in camp_data
+    assert "description" in camp_data
+
+    # Admin giám sát xem ai đã sử dụng AI tạo chiến dịch
+    admin_login = client.post("/api/auth/login", json={"email": "admin@marketing.ai", "password": "admin123"})
+    admin_headers = {"Authorization": f"Bearer {admin_login.json()['access_token']}"}
+
+    logs_res = client.get("/api/ai/logs?action_type=campaign_generation", headers=admin_headers)
+    assert logs_res.status_code == 200
+    logs = logs_res.json()
+    assert len(logs) > 0
+    # Thấy rõ marketer là người thực hiện
+    assert any(l["user_email"] == "marketer@marketing.ai" and "Tai nghe Gaming Pro" in l["prompt"] for l in logs)
+
+
+def test_admin_only_can_delete_team_members():
+    import uuid
+
+    # 1. Tạo một tài khoản thành viên để kiểm tra tính năng xóa
+    unique_suffix = uuid.uuid4().hex[:8]
+    test_email = f"staff_to_delete_{unique_suffix}@example.com"
+    test_password = "password123"
+    reg_resp = client.post("/api/auth/register", json={
+        "full_name": f"Nhân viên Thử Nghiệm {unique_suffix}",
+        "email": test_email,
+        "password": test_password
+    })
+    assert reg_resp.status_code == 200
+
+    # Lấy ID của thành viên vừa tạo bằng tài khoản Admin
+    admin_login = client.post("/api/auth/login", json={"email": "admin@marketing.ai", "password": "admin123"})
+    assert admin_login.status_code == 200
+    admin_token = admin_login.json()["access_token"]
+    admin_id = admin_login.json()["user"]["id"]
+    admin_headers = {"Authorization": f"Bearer {admin_token}"}
+
+    users_list = client.get("/api/auth/users", headers=admin_headers).json()
+    target_user = next((u for u in users_list if u["email"] == test_email), None)
+    assert target_user is not None
+    target_user_id = target_user["id"]
+
+    # 2. Nhân viên (Marketer) KHÔNG ĐƯỢC PHÉP XÓA THÀNH VIÊN (Trả về 403 Forbidden)
+    marketer_login = client.post("/api/auth/login", json={"email": "marketer@marketing.ai", "password": "marketer123"})
+    assert marketer_login.status_code == 200
+    marketer_headers = {"Authorization": f"Bearer {marketer_login.json()['access_token']}"}
+
+    del_as_marketer = client.delete(f"/api/auth/users/{target_user_id}", headers=marketer_headers)
+    assert del_as_marketer.status_code == 403, "Marketer không được phép xóa thành viên nhóm"
+
+    # 3. Quản lý (Manager) KHÔNG ĐƯỢC PHÉP XÓA THÀNH VIÊN (Trả về 403 Forbidden)
+    manager_login = client.post("/api/auth/login", json={"email": "manager@marketing.ai", "password": "manager123"})
+    assert manager_login.status_code == 200
+    manager_headers = {"Authorization": f"Bearer {manager_login.json()['access_token']}"}
+
+    del_as_manager = client.delete(f"/api/auth/users/{target_user_id}", headers=manager_headers)
+    assert del_as_manager.status_code == 403, "Manager không được phép xóa thành viên nhóm"
+
+    # 4. Quản trị viên (Admin) không thể tự xóa chính mình (Trả về 400 Bad Request)
+    del_self = client.delete(f"/api/auth/users/{admin_id}", headers=admin_headers)
+    assert del_self.status_code == 400
+    assert "Không thể tự xóa chính tài khoản" in del_self.json()["detail"]
+
+    # 5. Quản trị viên (Admin) CÓ QUYỀN XÓA THÀNH VIÊN (Trả về 200 OK)
+    del_as_admin = client.delete(f"/api/auth/users/{target_user_id}", headers=admin_headers)
+    assert del_as_admin.status_code == 200
+    assert del_as_admin.json()["id"] == target_user_id
+
+    # 6. Kiểm tra lại danh sách thành viên: không còn tài khoản vừa bị xóa
+    users_after_delete = client.get("/api/auth/users", headers=admin_headers).json()
+    assert not any(u["id"] == target_user_id for u in users_after_delete)
+
+    # 7. Tài khoản bị xóa không thể đăng nhập được nữa
+    login_deleted_user = client.post("/api/auth/login", json={"email": test_email, "password": test_password})
+    assert login_deleted_user.status_code == 401
