@@ -29,7 +29,7 @@ class Settings:
     # AI Engine Settings
     OPENAI_API_KEY: str = os.getenv("OPENAI_API_KEY", "")
     GEMINI_API_KEY: str = _load_gemini_api_key()
-    GEMINI_MODEL: str = os.getenv("GEMINI_MODEL", "gemini-2.5-flash")
+    GEMINI_MODEL: str = os.getenv("GEMINI_MODEL", "gemini-1.5-flash")
     AI_MODEL: str = os.getenv("AI_MODEL", "smart-ai-engine")
 
 settings = Settings()
